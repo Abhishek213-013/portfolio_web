@@ -17,16 +17,6 @@ Route::prefix('api')->group(function () {
     Route::post('/hero/{id}', [HeroController::class, 'update']);
     Route::delete('/hero/{id}', [HeroController::class, 'destroy']);
 });
-Route::prefix('api')->group(function () {
-    Route::middleware(['auth:sanctum'])->group(function () {
-    // Testimonials API
-        Route::get('/testimonials', [TestimonialController::class, 'index']);
-        Route::post('/testimonials', [TestimonialController::class, 'store']);
-        Route::get('/testimonials/{id}', [TestimonialController::class, 'show']);
-        Route::put('/testimonials/{id}', [TestimonialController::class, 'update']);
-        Route::delete('/testimonials/{id}', [TestimonialController::class, 'destroy']);
-    });
-});
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
