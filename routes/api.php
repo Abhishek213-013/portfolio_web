@@ -16,7 +16,12 @@ Route::prefix('api')->group(function () {
     Route::post('/hero', [HeroController::class, 'store']);
     Route::post('/hero/{id}', [HeroController::class, 'update']);
     Route::delete('/hero/{id}', [HeroController::class, 'destroy']);
+    Route::get('/testimonials', [TestimonialController::class, 'index']);
+    Route::post('/testimonials', [TestimonialController::class, 'store']);
+    Route::post('/testimonials/{id}', [TestimonialController::class, 'update']);
+    Route::delete('/testimonials/{id}', [TestimonialController::class, 'destroy']);
 });
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
