@@ -307,6 +307,7 @@ const form = reactive({
     name: '',
     roles: [],
     background_image: null,
+    background_image_file: null,
     social_links: [],
     is_active: true
 });
@@ -318,18 +319,29 @@ onMounted(() => {
 const fetchHeroData = async () => {
     try {
         const response = await axios.get('/api/hero');
-        if (response.data) {
+        console.log('Hero data response:', response.data);
+        
+        if (response.data && response.data.data) {
+            // If response has data property (from our updated controller)
+            heroData.value = response.data.data;
+        } else if (response.data) {
+            // If response is the data directly
             heroData.value = response.data;
+        }
+        
+        // Populate form if hero data exists
+        if (heroData.value) {
             Object.assign(form, {
-                name: response.data.name,
-                roles: response.data.roles || [],
-                social_links: response.data.social_links || [],
-                is_active: response.data.is_active,
-                background_image: response.data.background_image
+                name: heroData.value.name || '',
+                roles: heroData.value.roles || [],
+                social_links: heroData.value.social_links || [],
+                is_active: heroData.value.is_active !== undefined ? heroData.value.is_active : true,
+                background_image: heroData.value.background_image || null
             });
         }
     } catch (error) {
         console.error('Error fetching hero data:', error);
+        console.error('Error response:', error.response?.data);
     }
 };
 
@@ -339,12 +351,14 @@ const handleImageUpload = (event) => {
         // Validate file type
         if (!file.type.match('image.*')) {
             alert('Please select an image file (JPEG, PNG, GIF)');
+            event.target.value = '';
             return;
         }
         
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             alert('Image size should be less than 5MB');
+            event.target.value = '';
             return;
         }
         
@@ -358,81 +372,132 @@ const handleImageUpload = (event) => {
 
 const addRole = () => {
     if (newRole.value.trim()) {
+        if (!form.roles) form.roles = [];
         form.roles.push(newRole.value.trim());
         newRole.value = '';
     }
 };
 
 const removeRole = (index) => {
-    form.roles.splice(index, 1);
+    if (form.roles && form.roles.length > index) {
+        form.roles.splice(index, 1);
+    }
 };
 
 const addSocialLink = () => {
+    if (!form.social_links) form.social_links = [];
     form.social_links.push({ platform: '', url: '', icon: '' });
 };
 
 const removeSocialLink = (index) => {
-    form.social_links.splice(index, 1);
+    if (form.social_links && form.social_links.length > index) {
+        form.social_links.splice(index, 1);
+    }
 };
 
 const saveHero = async () => {
     loading.value = true;
     
     try {
+        // Validate form
+        if (!form.name || !form.name.trim()) {
+            alert('Name is required');
+            loading.value = false;
+            return;
+        }
+        
+        if (!form.roles || form.roles.length === 0) {
+            alert('At least one role is required');
+            loading.value = false;
+            return;
+        }
+        
+        // Create FormData properly
         const formData = new FormData();
         formData.append('name', form.name.trim());
-        formData.append('roles', JSON.stringify(form.roles));
-        formData.append('social_links', JSON.stringify(form.social_links));
-        formData.append('is_active', form.is_active);
+        formData.append('is_active', form.is_active ? '1' : '0');
         
-        // Use the file if it's a new upload, otherwise use the existing URL
+        // Append roles as separate fields
+        form.roles.forEach((role, index) => {
+            formData.append(`roles[${index}]`, role);
+        });
+        
+        // Append social links properly
+        if (form.social_links && form.social_links.length > 0) {
+            form.social_links.forEach((link, index) => {
+                if (link.platform) formData.append(`social_links[${index}][platform]`, link.platform);
+                if (link.url) formData.append(`social_links[${index}][url]`, link.url);
+                if (link.icon) formData.append(`social_links[${index}][icon]`, link.icon);
+            });
+        } else {
+            // Send empty array
+            formData.append('social_links', JSON.stringify([]));
+        }
+        
+        // Use the file if it's a new upload
         if (form.background_image_file) {
             formData.append('background_image', form.background_image_file);
         } else if (form.background_image && typeof form.background_image === 'string') {
-            // If it's a string (URL), we need to send it differently
-            formData.append('background_image_url', form.background_image);
+            // If it's an actual URL (not a blob), send it as URL
+            if (!form.background_image.startsWith('blob:')) {
+                formData.append('background_image_url', form.background_image);
+            }
         }
 
-        let response;
+        let url, method;
         if (heroData.value && heroData.value.id) {
             // Update existing
-            response = await axios.post(`/api/hero/${heroData.value.id}`, formData, {
-                headers: { 
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                }
-            });
+            url = `/api/hero/${heroData.value.id}`;
+            method = 'put';
         } else {
             // Create new
-            response = await axios.post('/api/hero', formData, {
-                headers: { 
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                }
-            });
+            url = '/api/hero';
+            method = 'post';
         }
 
-        if (response.status === 200 || response.status === 201) {
-            heroData.value = response.data;
+        console.log('Sending form data:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+
+        const response = await axios({
+            method: method,
+            url: url,
+            data: formData,
+            headers: { 
+                'Content-Type': 'multipart/form-data',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        });
+
+        console.log('Save response:', response);
+
+        if (response.data.success) {
+            heroData.value = response.data.data;
             showForm.value = false;
             
-            // Show success message
-            if (router.page.props && router.page.props.setFlash) {
-                router.page.props.setFlash({
-                    type: 'success',
-                    message: 'Hero section saved successfully!'
-                });
-            }
+            // Reset file reference
+            form.background_image_file = null;
             
-            // Reload to show flash message
-            router.reload({ only: ['flash'] });
+            // Show success message
+            alert('Hero section saved successfully!');
+            
+            // Refresh data
+            await fetchHeroData();
         }
     } catch (error) {
         console.error('Error saving hero:', error);
+        console.error('Error response:', error.response?.data);
         
-        // Show error message
-        const errorMessage = error.response?.data?.message || 'Failed to save hero section. Please try again.';
-        alert(errorMessage);
+        // Show detailed error message
+        if (error.response?.data?.errors) {
+            const errors = error.response.data.errors;
+            const errorMessages = Object.values(errors).flat().join('\n');
+            alert(`Validation errors:\n${errorMessages}`);
+        } else {
+            const errorMessage = error.response?.data?.message || 'Failed to save hero section. Please try again.';
+            alert(errorMessage);
+        }
     } finally {
         loading.value = false;
     }
@@ -440,6 +505,7 @@ const saveHero = async () => {
 
 const formatDate = (dateString) => {
     try {
+        if (!dateString) return 'Never';
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
             year: 'numeric',

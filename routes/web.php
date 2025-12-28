@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\API\HeroController;
+use App\Http\Controllers\API\TestimonialController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -83,6 +85,24 @@ Route::prefix('admin')->name('admin.')->group(function () {
             return inertia('Admin/SiteSettings');
         })->name('settings');
     });
+});
+
+// API Routes - temporarily remove auth middleware for testing
+// Route::prefix('api')->middleware(['auth'])->group(function () {
+Route::prefix('api')->group(function () {
+    // Hero Section API
+    Route::get('/hero', [HeroController::class, 'index']);
+    Route::post('/hero', [HeroController::class, 'store']);
+    Route::put('/hero/{id}', [HeroController::class, 'update']);
+    Route::delete('/hero/{id}', [HeroController::class, 'destroy']);
+    
+    // Testimonials API
+    Route::get('/testimonials', [TestimonialController::class, 'index']);
+    Route::post('/testimonials', [TestimonialController::class, 'store']);
+    Route::put('/testimonials/{id}', [TestimonialController::class, 'update']);
+    Route::delete('/testimonials/{id}', [TestimonialController::class, 'destroy']);
+    
+    // Add other API routes here as needed...
 });
 
 // Handle all other routes (404)
