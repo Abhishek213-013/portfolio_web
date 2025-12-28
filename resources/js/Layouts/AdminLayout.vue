@@ -388,9 +388,11 @@ const toggleTheme = () => {
     
     if (isDarkMode.value) {
         document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
         localStorage.setItem('theme', 'dark');
     } else {
         document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
         localStorage.setItem('theme', 'light');
     }
 };
@@ -402,9 +404,11 @@ const initTheme = () => {
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         isDarkMode.value = true;
         document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
     } else {
         isDarkMode.value = false;
         document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
     }
 };
 
