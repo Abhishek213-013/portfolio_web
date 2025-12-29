@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\API\HeroController;
 use App\Http\Controllers\API\TestimonialController;
+use App\Http\Controllers\API\AboutController;
+use App\Http\Controllers\API\SkillController; // Add this line
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -87,8 +89,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-// API Routes - temporarily remove auth middleware for testing
-// Route::prefix('api')->middleware(['auth'])->group(function () {
+// API Routes
 Route::prefix('api')->group(function () {
     // Hero Section API
     Route::get('/hero', [HeroController::class, 'index']);
@@ -102,7 +103,19 @@ Route::prefix('api')->group(function () {
     Route::put('/testimonials/{id}', [TestimonialController::class, 'update']);
     Route::delete('/testimonials/{id}', [TestimonialController::class, 'destroy']);
     
-    // Add other API routes here as needed...
+    // About Section API
+    Route::get('/about', [AboutController::class, 'index']);
+    Route::post('/about', [AboutController::class, 'store']);
+    Route::put('/about/{id}', [AboutController::class, 'update']);
+    Route::delete('/about/{id}', [AboutController::class, 'destroy']);
+    
+    // Skills API - Add these routes
+    Route::get('/skills', [SkillController::class, 'index']);
+    Route::post('/skills', [SkillController::class, 'store']);
+    Route::get('/skills/{id}', [SkillController::class, 'show']);
+    Route::put('/skills/{id}', [SkillController::class, 'update']);
+    Route::delete('/skills/{id}', [SkillController::class, 'destroy']);
+    Route::post('/skills/order', [SkillController::class, 'updateOrder']);
 });
 
 // Handle all other routes (404)

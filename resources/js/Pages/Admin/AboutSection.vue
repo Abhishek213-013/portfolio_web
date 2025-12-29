@@ -27,7 +27,7 @@
                                     />
                                 </div>
                                 <div v-if="form.profile_image" class="mt-4">
-                                    <img :src="form.profile_image instanceof File ? URL.createObjectURL(form.profile_image) : form.profile_image" 
+                                    <img :src="profileImageUrl" 
                                          class="h-32 w-32 object-cover rounded-full border-4 border-white dark:border-gray-800 shadow-md">
                                 </div>
                             </div>
@@ -293,6 +293,19 @@ const form = reactive({
     is_active: true
 });
 
+// Computed property for image URL
+const profileImageUrl = computed(() => {
+    if (!form.profile_image) return null;
+    
+    // Check if it's a File object
+    if (form.profile_image && typeof form.profile_image === 'object' && 
+        form.profile_image.constructor && form.profile_image.constructor.name === 'File') {
+        return URL.createObjectURL(form.profile_image);
+    }
+    
+    return form.profile_image;
+});
+
 const leftDetails = computed({
     get: () => form.personal_details.left || [],
     set: (value) => form.personal_details.left = value
@@ -310,20 +323,32 @@ onMounted(() => {
 const fetchAboutData = async () => {
     try {
         const response = await axios.get('/api/about');
-        if (response.data) {
-            aboutData.value = response.data;
+        if (response.data && response.data.data) {
+            aboutData.value = response.data.data;
             Object.assign(form, {
-                title: response.data.title,
-                description: response.data.description,
-                bio: response.data.bio,
-                personal_details: response.data.personal_details || { left: [], right: [] },
-                extended_bio: response.data.extended_bio,
-                is_active: response.data.is_active,
-                profile_image: response.data.profile_image
+                title: response.data.data.title || '',
+                description: response.data.data.description || '',
+                bio: response.data.data.bio || '',
+                personal_details: response.data.data.personal_details || { left: [], right: [] },
+                extended_bio: response.data.data.extended_bio || '',
+                is_active: response.data.data.is_active || true,
+                profile_image: response.data.data.profile_image || null
+            });
+        } else {
+            // Reset form if no data
+            Object.assign(form, {
+                title: '',
+                description: '',
+                bio: '',
+                personal_details: { left: [], right: [] },
+                extended_bio: '',
+                is_active: true,
+                profile_image: null
             });
         }
     } catch (error) {
         console.error('Error fetching about data:', error);
+        aboutData.value = null;
     }
 };
 
@@ -364,52 +389,67 @@ const saveAbout = async () => {
         formData.append('bio', form.bio.trim());
         formData.append('personal_details', JSON.stringify(form.personal_details));
         formData.append('extended_bio', form.extended_bio.trim());
-        formData.append('is_active', form.is_active);
+        formData.append('is_active', form.is_active ? '1' : '0'); // Convert to string
         
-        if (form.profile_image instanceof File) {
+        // Check if it's a File object before appending
+        if (form.profile_image && typeof form.profile_image === 'object' && 
+            form.profile_image.constructor && form.profile_image.constructor.name === 'File') {
             formData.append('profile_image', form.profile_image);
         }
 
         let response;
+        let method = 'post';
+        let url = '/api/about';
+        
         if (aboutData.value && aboutData.value.id) {
-            // Update existing
-            response = await axios.post(`/api/about/${aboutData.value.id}`, formData, {
-                headers: { 
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                }
-            });
-        } else {
-            // Create new
-            response = await axios.post('/api/about', formData, {
-                headers: { 
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                }
-            });
+            // Update existing - use PUT method
+            method = 'put';
+            url = `/api/about/${aboutData.value.id}`;
+            
+            // Append _method for Laravel if needed
+            formData.append('_method', 'PUT');
         }
+
+        response = await axios({
+            method: method,
+            url: url,
+            data: formData,
+            headers: { 
+                'Content-Type': 'multipart/form-data',
+                // Let Inertia.js handle the CSRF token automatically
+            }
+        });
 
         if (response.status === 200 || response.status === 201) {
             aboutData.value = response.data;
             showForm.value = false;
             
-            // Show success message
-            if (router.page.props && router.page.props.setFlash) {
-                router.page.props.setFlash({
-                    type: 'success',
-                    message: 'About section saved successfully!'
-                });
+            // Show success message using Inertia's flash
+            if (router.page && router.page.props && router.page.props.flash) {
+                // Use Inertia's built-in flash message system
+                window.dispatchEvent(new CustomEvent('inertia-flash', {
+                    detail: { 
+                        type: 'success', 
+                        message: 'About section saved successfully!' 
+                    }
+                }));
             }
             
-            // Reload to show flash message
-            router.reload({ only: ['flash'] });
+            // Refresh the data
+            await fetchAboutData();
         }
     } catch (error) {
         console.error('Error saving about:', error);
         
-        // Show error message
-        const errorMessage = error.response?.data?.message || 'Failed to save about section. Please try again.';
-        alert(errorMessage);
+        // Show validation errors if available
+        if (error.response?.data?.errors) {
+            const errors = error.response.data.errors;
+            const errorMessages = Object.values(errors).flat().join('\n');
+            alert(`Validation errors:\n${errorMessages}`);
+        } else {
+            const errorMessage = error.response?.data?.message || 'Failed to save about section. Please try again.';
+            alert(errorMessage);
+        }
     } finally {
         loading.value = false;
     }

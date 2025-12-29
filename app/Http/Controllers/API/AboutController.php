@@ -19,15 +19,32 @@ class AboutController extends Controller
 
     public function store(Request $request)
     {
+        // Decode JSON fields from form data
+        $personalDetails = [];
+        if ($request->has('personal_details')) {
+            $personalDetails = json_decode($request->input('personal_details'), true);
+        }
+
         $validator = Validator::make($request->all(), [
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'bio' => 'required|string',
-            'personal_details' => 'required|array',
             'extended_bio' => 'required|string',
-            'is_active' => 'boolean',
+            'is_active' => 'required|boolean',
         ]);
+
+        // Additional validation for personal_details
+        if ($personalDetails) {
+            $validator->addRules([
+                'personal_details' => function ($attribute, $value, $fail) {
+                    $decoded = json_decode($value, true);
+                    if (!is_array($decoded) || !isset($decoded['left']) || !isset($decoded['right'])) {
+                        $fail('Personal details must be a valid JSON structure with left and right arrays.');
+                    }
+                }
+            ]);
+        }
 
         if ($validator->fails()) {
             return response()->json([
@@ -36,7 +53,7 @@ class AboutController extends Controller
             ], 422);
         }
 
-        $data = $request->all();
+        $data = $request->only(['title', 'description', 'bio', 'extended_bio', 'is_active']);
 
         // Handle image upload
         if ($request->hasFile('profile_image')) {
@@ -44,9 +61,9 @@ class AboutController extends Controller
             $data['profile_image'] = $imagePath;
         }
 
-        // Encode personal_details as JSON
-        if ($request->has('personal_details')) {
-            $data['personal_details'] = json_encode($request->personal_details);
+        // Store personal_details as JSON
+        if ($personalDetails) {
+            $data['personal_details'] = json_encode($personalDetails);
         }
 
         $about = AboutSection::updateOrCreate(
@@ -61,15 +78,32 @@ class AboutController extends Controller
     {
         $about = AboutSection::findOrFail($id);
 
+        // Decode JSON fields from form data
+        $personalDetails = [];
+        if ($request->has('personal_details')) {
+            $personalDetails = json_decode($request->input('personal_details'), true);
+        }
+
         $validator = Validator::make($request->all(), [
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'bio' => 'required|string',
-            'personal_details' => 'required|array',
             'extended_bio' => 'required|string',
-            'is_active' => 'boolean',
+            'is_active' => 'required|boolean',
         ]);
+
+        // Additional validation for personal_details
+        if ($personalDetails) {
+            $validator->addRules([
+                'personal_details' => function ($attribute, $value, $fail) {
+                    $decoded = json_decode($value, true);
+                    if (!is_array($decoded) || !isset($decoded['left']) || !isset($decoded['right'])) {
+                        $fail('Personal details must be a valid JSON structure with left and right arrays.');
+                    }
+                }
+            ]);
+        }
 
         if ($validator->fails()) {
             return response()->json([
@@ -78,7 +112,7 @@ class AboutController extends Controller
             ], 422);
         }
 
-        $data = $request->all();
+        $data = $request->only(['title', 'description', 'bio', 'extended_bio', 'is_active']);
 
         // Handle image upload
         if ($request->hasFile('profile_image')) {
@@ -91,9 +125,9 @@ class AboutController extends Controller
             $data['profile_image'] = $imagePath;
         }
 
-        // Encode personal_details as JSON
-        if ($request->has('personal_details')) {
-            $data['personal_details'] = json_encode($request->personal_details);
+        // Store personal_details as JSON
+        if ($personalDetails) {
+            $data['personal_details'] = json_encode($personalDetails);
         }
 
         $about->update($data);

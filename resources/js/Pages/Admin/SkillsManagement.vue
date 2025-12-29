@@ -429,6 +429,13 @@ const form = reactive({
     is_active: true
 });
 
+// Notification state
+const notification = reactive({
+    show: false,
+    message: '',
+    type: 'success'
+});
+
 // Safeguard computed properties with fallbacks
 const leftSkills = computed(() => {
     if (!Array.isArray(skills.value)) return [];
@@ -452,6 +459,18 @@ const activeSkillsCount = computed(() => {
 onMounted(() => {
     fetchSkills();
 });
+
+// Notification function
+const showNotification = (message, type = 'success') => {
+    notification.show = true;
+    notification.message = message;
+    notification.type = type;
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        notification.show = false;
+    }, 3000);
+};
 
 const fetchSkills = async () => {
     try {
@@ -482,16 +501,10 @@ const fetchSkills = async () => {
         
         skills.value = skillsData;
         
-        console.log('Fetched skills:', skills.value);
-        
     } catch (error) {
         console.error('Error fetching skills:', error);
         skills.value = [];
-        
-        // Show error to user
-        if (router.page.props && router.page.props.flash) {
-            router.page.props.flash.error = 'Failed to load skills. Please try again.';
-        }
+        showNotification('Failed to load skills. Please try again.', 'error');
     } finally {
         initialLoading.value = false;
     }
@@ -550,30 +563,29 @@ const saveSkill = async () => {
             await fetchSkills();
             cancelEdit();
             
-            // Show success message
-            router.visit(window.location.pathname, {
-                preserveState: true,
-                preserveScroll: true,
-                only: [],
-                onSuccess: () => {
-                    if (router.page.props && router.page.props.flash) {
-                        router.page.props.flash.success = editingId.value 
-                            ? 'Skill updated successfully!' 
-                            : 'Skill added successfully!';
-                    }
-                }
-            });
+            // Show success notification
+            showNotification(
+                editingId.value ? 'Skill updated successfully!' : 'Skill added successfully!',
+                'success'
+            );
         }
     } catch (error) {
         console.error('Error saving skill:', error);
         
-        // Show error message
-        const errorMessage = error.response?.data?.message || 
-                           (error.response?.data?.errors ? 
-                            Object.values(error.response.data.errors).flat().join(', ') : 
-                            'Failed to save skill. Please try again.');
+        // Show error message - handle different error formats
+        let errorMessage = 'Failed to save skill. Please try again.';
         
-        alert(errorMessage);
+        if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.response?.data?.errors) {
+            // Handle Laravel validation errors
+            const errors = Object.values(error.response.data.errors).flat();
+            errorMessage = errors.join(', ');
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        showNotification(errorMessage, 'error');
     } finally {
         loading.value = false;
     }
@@ -586,24 +598,15 @@ const deleteSkill = async (id) => {
         await axios.delete(`/api/skills/${id}`);
         await fetchSkills();
         
-        // Show success message
-        router.visit(window.location.pathname, {
-            preserveState: true,
-            preserveScroll: true,
-            only: [],
-            onSuccess: () => {
-                if (router.page.props && router.page.props.flash) {
-                    router.page.props.flash.success = 'Skill deleted successfully!';
-                }
-            }
-        });
+        // Show success notification
+        showNotification('Skill deleted successfully!', 'success');
         
     } catch (error) {
         console.error('Error deleting skill:', error);
         
         // Show error message
         const errorMessage = error.response?.data?.message || 'Failed to delete skill. Please try again.';
-        alert(errorMessage);
+        showNotification(errorMessage, 'error');
     }
 };
 
@@ -618,12 +621,15 @@ const updateOrder = async () => {
     try {
         await axios.post('/api/skills/order', { skills: skillsWithOrder });
         await fetchSkills();
+        
+        // Show success notification
+        showNotification('Skills order updated successfully!', 'success');
     } catch (error) {
         console.error('Error updating order:', error);
         
         // Show error message
         const errorMessage = error.response?.data?.message || 'Failed to update skill order. Please try again.';
-        alert(errorMessage);
+        showNotification(errorMessage, 'error');
         
         // Revert local changes on error
         await fetchSkills();
@@ -760,4 +766,38 @@ button:focus {
 .hover\:shadow-md:hover {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    z-index: 50;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification.success {
+    background-color: #10b981;
+    color: white;
+}
+
+.notification.error {
+    background-color: #ef4444;
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
 </style>
+
