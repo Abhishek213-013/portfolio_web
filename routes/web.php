@@ -7,7 +7,10 @@ use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\API\HeroController;
 use App\Http\Controllers\API\TestimonialController;
 use App\Http\Controllers\API\AboutController;
-use App\Http\Controllers\API\SkillController; // Add this line
+use App\Http\Controllers\API\SkillController;
+use App\Http\Controllers\API\StatisticController;
+use App\Http\Controllers\API\ResumeController;
+use App\Http\Controllers\API\PortfolioController as ApiPortfolioController; // Add this import
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -109,13 +112,37 @@ Route::prefix('api')->group(function () {
     Route::put('/about/{id}', [AboutController::class, 'update']);
     Route::delete('/about/{id}', [AboutController::class, 'destroy']);
     
-    // Skills API - Add these routes
+    // Skills API
     Route::get('/skills', [SkillController::class, 'index']);
     Route::post('/skills', [SkillController::class, 'store']);
     Route::get('/skills/{id}', [SkillController::class, 'show']);
     Route::put('/skills/{id}', [SkillController::class, 'update']);
     Route::delete('/skills/{id}', [SkillController::class, 'destroy']);
     Route::post('/skills/order', [SkillController::class, 'updateOrder']);
+
+    // Statistics API
+    Route::get('/statistics', [StatisticController::class, 'index']);
+    Route::post('/statistics', [StatisticController::class, 'store']);
+    Route::get('/statistics/{id}', [StatisticController::class, 'show']);
+    Route::put('/statistics/{id}', [StatisticController::class, 'update']);
+    Route::delete('/statistics/{id}', [StatisticController::class, 'destroy']);
+    Route::post('/statistics/order', [StatisticController::class, 'updateOrder']);
+    
+    // Resume Sections API
+    Route::get('/resume-sections', [ResumeController::class, 'index']);
+    Route::post('/resume-sections', [ResumeController::class, 'store']);
+    Route::get('/resume-sections/{id}', [ResumeController::class, 'show']);
+    Route::put('/resume-sections/{id}', [ResumeController::class, 'update']);
+    Route::delete('/resume-sections/{id}', [ResumeController::class, 'destroy']);
+    Route::get('/resume-sections/type/{type}', [ResumeController::class, 'byType']);
+    
+    // Portfolio Items API - Add these routes
+    Route::get('/portfolio-items', [ApiPortfolioController::class, 'index']);
+    Route::post('/portfolio-items', [ApiPortfolioController::class, 'store']);
+    Route::get('/portfolio-items/{id}', [ApiPortfolioController::class, 'show']);
+    Route::put('/portfolio-items/{id}', [ApiPortfolioController::class, 'update']);
+    Route::delete('/portfolio-items/{id}', [ApiPortfolioController::class, 'destroy']);
+    Route::get('/portfolio-items/category/{category}', [ApiPortfolioController::class, 'byCategory']);
 });
 
 // Handle all other routes (404)

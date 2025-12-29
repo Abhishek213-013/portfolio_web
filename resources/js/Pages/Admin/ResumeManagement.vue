@@ -1,6 +1,39 @@
 <template>
     <AdminLayout>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <!-- Flash Messages -->
+            <div v-if="$page.props.flash?.success" 
+                 class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800 dark:text-green-300">
+                            {{ $page.props.flash.success }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div v-if="$page.props.flash?.error" 
+                 class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-red-800 dark:text-red-300">
+                            {{ $page.props.flash.error }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Resume Management</h2>
@@ -497,12 +530,12 @@ const fetchResumeSections = async () => {
             sectionsData = Object.values(response.data);
         }
         
-        // Ensure all sections have required properties
+        // Map institution to subtitle for frontend display
         sectionsData = sectionsData.map(section => ({
             id: section.id || 0,
             type: section.type || 'summary',
             title: section.title || '',
-            subtitle: section.subtitle || '',
+            subtitle: section.institution || section.subtitle || '', // Use institution or subtitle
             period: section.period || '',
             description: section.description || '',
             details: Array.isArray(section.details) ? section.details : (section.details ? [section.details] : []),
@@ -513,16 +546,9 @@ const fetchResumeSections = async () => {
         
         resumeSections.value = sectionsData;
         
-        console.log('Fetched resume sections:', resumeSections.value);
-        
     } catch (error) {
         console.error('Error fetching resume sections:', error);
         resumeSections.value = [];
-        
-        // Show error to user
-        if (router.page.props && router.page.props.flash) {
-            router.page.props.flash.error = 'Failed to load resume sections. Please try again.';
-        }
     } finally {
         initialLoading.value = false;
     }
@@ -601,11 +627,23 @@ const saveResumeSection = async () => {
     loading.value = true;
     
     try {
+        // Prepare data for API
+        const apiData = {
+            type: form.type,
+            title: form.title,
+            institution: form.subtitle, // Map subtitle to institution
+            period: form.period,
+            description: form.description,
+            details: form.details,
+            order: form.order,
+            is_active: form.is_active
+        };
+        
         let response;
         if (editingId.value) {
-            response = await axios.put(`/api/resume-sections/${editingId.value}`, form);
+            response = await axios.put(`/api/resume-sections/${editingId.value}`, apiData);
         } else {
-            response = await axios.post('/api/resume-sections', form);
+            response = await axios.post('/api/resume-sections', apiData);
         }
 
         if (response.status === 200 || response.status === 201) {
@@ -613,16 +651,15 @@ const saveResumeSection = async () => {
             cancelEdit();
             
             // Show success message
+            const message = editingId.value 
+                ? 'Resume section updated successfully!' 
+                : 'Resume section added successfully!';
+            
+            // Use Inertia's visit method
             router.visit(window.location.pathname, {
-                preserveState: true,
                 preserveScroll: true,
-                only: [],
-                onSuccess: () => {
-                    if (router.page.props && router.page.props.flash) {
-                        router.page.props.flash.success = editingId.value 
-                            ? 'Resume section updated successfully!' 
-                            : 'Resume section added successfully!';
-                    }
+                data: {
+                    success: message
                 }
             });
         }
@@ -630,11 +667,17 @@ const saveResumeSection = async () => {
         console.error('Error saving resume section:', error);
         
         // Show error message
-        const errorMessage = error.response?.data?.message || 
-                           (error.response?.data?.errors ? 
-                            Object.values(error.response.data.errors).flat().join(', ') : 
-                            'Failed to save resume section. Please try again.');
+        let errorMessage = 'Failed to save resume section. Please try again.';
         
+        if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.response?.data?.errors) {
+            // Handle validation errors
+            const errors = error.response.data.errors;
+            errorMessage = Object.values(errors).flat().join(', ');
+        }
+        
+        // Show error alert
         alert(errorMessage);
     } finally {
         loading.value = false;
@@ -650,13 +693,9 @@ const deleteResumeSection = async (id) => {
         
         // Show success message
         router.visit(window.location.pathname, {
-            preserveState: true,
             preserveScroll: true,
-            only: [],
-            onSuccess: () => {
-                if (router.page.props && router.page.props.flash) {
-                    router.page.props.flash.success = 'Resume section deleted successfully!';
-                }
+            data: {
+                success: 'Resume section deleted successfully!'
             }
         });
         
@@ -664,7 +703,12 @@ const deleteResumeSection = async (id) => {
         console.error('Error deleting resume section:', error);
         
         // Show error message
-        const errorMessage = error.response?.data?.message || 'Failed to delete resume section. Please try again.';
+        let errorMessage = 'Failed to delete resume section. Please try again.';
+        
+        if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        }
+        
         alert(errorMessage);
     }
 };

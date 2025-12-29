@@ -12,10 +12,25 @@ class StatisticController extends Controller
 {
     public function index()
     {
-        $statistics = Statistic::orderBy('order')->get();
-        return StatisticResource::collection($statistics);
+        try {
+            $statistics = Statistic::orderBy('order')->get();
+            
+            // Return as simple array for easier handling
+            return response()->json([
+                'success' => true,
+                'data' => StatisticResource::collection($statistics)->toArray(request())
+            ]);
+            
+            // OR simpler approach:
+            // return response()->json(StatisticResource::collection($statistics));
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch statistics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
-
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

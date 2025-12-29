@@ -63,7 +63,7 @@
                         
                         <div v-if="form.image" class="mt-4">
                             <div class="relative">
-                                <img :src="form.image instanceof File ? URL.createObjectURL(form.image) : form.image" 
+                                <img :src="imagePreview" 
                                      class="h-64 w-full object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-md">
                                 <div class="absolute top-2 right-2">
                                     <span class="px-3 py-1 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
@@ -281,7 +281,7 @@
                             <div class="flex justify-between items-center">
                                 <button 
                                     v-if="item.details_url"
-                                    @click.stop="window.open(item.details_url, '_blank')"
+                                    @click.stop="openExternalLink(item.details_url)"
                                     class="px-3 py-1.5 text-xs font-medium bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                 >
                                     View Project →
@@ -377,6 +377,20 @@ const categories = [
     { label: 'Other', value: 'other', activeClass: 'bg-gray-600 text-white dark:bg-gray-500 dark:text-white' },
 ];
 
+// Computed property for image preview
+const imagePreview = computed(() => {
+    if (!form.image) return '';
+    if (form.image instanceof File) {
+        return URL.createObjectURL(form.image);
+    }
+    return form.image;
+});
+
+// Helper function to check if an object is a File
+const isFile = (obj) => {
+    return obj && obj instanceof File;
+};
+
 // Safeguard computed properties with fallbacks
 const filteredPortfolioItems = computed(() => {
     if (!Array.isArray(portfolioItems.value)) return [];
@@ -436,9 +450,7 @@ const fetchPortfolioItems = async () => {
         portfolioItems.value = [];
         
         // Show error to user
-        if (router.page.props && router.page.props.flash) {
-            router.page.props.flash.error = 'Failed to load portfolio items. Please try again.';
-        }
+        alert('Failed to load portfolio items. Please try again.');
     } finally {
         initialLoading.value = false;
     }
@@ -543,13 +555,17 @@ const savePortfolioItem = async () => {
         formData.append('title', form.title.trim());
         formData.append('category', form.category);
         formData.append('description', form.description.trim());
+        
         if (form.details_url) {
             formData.append('details_url', form.details_url.trim());
         }
-        formData.append('order', form.order);
-        formData.append('is_active', form.is_active);
         
-        if (form.image instanceof File) {
+        formData.append('order', form.order);
+        
+        // Convert checkbox value to proper boolean string
+        formData.append('is_active', form.is_active ? '1' : '0');
+        
+        if (isFile(form.image)) {
             formData.append('image', form.image);
         } else if (form.image && typeof form.image === 'string') {
             // If it's a string (URL), we need to send it differently
@@ -559,7 +575,7 @@ const savePortfolioItem = async () => {
         let response;
         if (editingId.value) {
             // Update existing
-            response = await axios.post(`/api/portfolio-items/${editingId.value}`, formData, {
+            response = await axios.put(`/api/portfolio-items/${editingId.value}`, formData, {
                 headers: { 
                     'Content-Type': 'multipart/form-data',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
@@ -580,27 +596,25 @@ const savePortfolioItem = async () => {
             cancelEdit();
             
             // Show success message
-            router.visit(window.location.pathname, {
-                preserveState: true,
-                preserveScroll: true,
-                only: [],
-                onSuccess: () => {
-                    if (router.page.props && router.page.props.flash) {
-                        router.page.props.flash.success = editingId.value 
-                            ? 'Portfolio item updated successfully!' 
-                            : 'Portfolio item added successfully!';
-                    }
-                }
-            });
+            alert(
+                editingId.value 
+                    ? 'Portfolio item updated successfully!' 
+                    : 'Portfolio item added successfully!'
+            );
         }
     } catch (error) {
         console.error('Error saving portfolio item:', error);
         
         // Show error message
-        const errorMessage = error.response?.data?.message || 
-                           (error.response?.data?.errors ? 
-                            Object.values(error.response.data.errors).flat().join(', ') : 
-                            'Failed to save portfolio item. Please try again.');
+        let errorMessage = 'Failed to save portfolio item. Please try again.';
+        
+        if (error.response?.data?.errors) {
+            // Format Laravel validation errors
+            const errors = error.response.data.errors;
+            errorMessage = Object.values(errors).flat().join(', ');
+        } else if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        }
         
         alert(errorMessage);
     } finally {
@@ -616,16 +630,7 @@ const deletePortfolioItem = async (id) => {
         await fetchPortfolioItems();
         
         // Show success message
-        router.visit(window.location.pathname, {
-            preserveState: true,
-            preserveScroll: true,
-            only: [],
-            onSuccess: () => {
-                if (router.page.props && router.page.props.flash) {
-                    router.page.props.flash.success = 'Portfolio item deleted successfully!';
-                }
-            }
-        });
+        alert('Portfolio item deleted successfully!');
         
     } catch (error) {
         console.error('Error deleting portfolio item:', error);
@@ -633,6 +638,12 @@ const deletePortfolioItem = async (id) => {
         // Show error message
         const errorMessage = error.response?.data?.message || 'Failed to delete portfolio item. Please try again.';
         alert(errorMessage);
+    }
+};
+
+const openExternalLink = (url) => {
+    if (url) {
+        window.open(url, '_blank');
     }
 };
 
