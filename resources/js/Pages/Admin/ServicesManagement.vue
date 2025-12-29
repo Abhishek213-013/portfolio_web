@@ -524,10 +524,8 @@ const fetchServices = async () => {
         console.error('Error fetching services:', error);
         services.value = [];
         
-        // Show error to user
-        if (router.page.props && router.page.props.flash) {
-            router.page.props.flash.error = 'Failed to load services. Please try again.';
-        }
+        // Show error notification
+        showNotification('Failed to load services. Please try again.', 'error');
     } finally {
         initialLoading.value = false;
     }
@@ -665,19 +663,13 @@ const saveService = async () => {
             await fetchServices();
             cancelEdit();
             
-            // Show success message
-            router.visit(window.location.pathname, {
-                preserveState: true,
-                preserveScroll: true,
-                only: [],
-                onSuccess: () => {
-                    if (router.page.props && router.page.props.flash) {
-                        router.page.props.flash.success = editingId.value 
-                            ? 'Service updated successfully!' 
-                            : 'Service added successfully!';
-                    }
-                }
-            });
+            // Show success notification
+            showNotification(
+                editingId.value 
+                    ? 'Service updated successfully!' 
+                    : 'Service added successfully!',
+                'success'
+            );
         }
     } catch (error) {
         console.error('Error saving service:', error);
@@ -688,7 +680,7 @@ const saveService = async () => {
                             Object.values(error.response.data.errors).flat().join(', ') : 
                             'Failed to save service. Please try again.');
         
-        alert(errorMessage);
+        showNotification(errorMessage, 'error');
     } finally {
         loading.value = false;
     }
@@ -701,25 +693,63 @@ const deleteService = async (id) => {
         await axios.delete(`/api/services/${id}`);
         await fetchServices();
         
-        // Show success message
-        router.visit(window.location.pathname, {
-            preserveState: true,
-            preserveScroll: true,
-            only: [],
-            onSuccess: () => {
-                if (router.page.props && router.page.props.flash) {
-                    router.page.props.flash.success = 'Service deleted successfully!';
-                }
-            }
-        });
+        // Show success notification
+        showNotification('Service deleted successfully!', 'success');
         
     } catch (error) {
         console.error('Error deleting service:', error);
         
         // Show error message
         const errorMessage = error.response?.data?.message || 'Failed to delete service. Please try again.';
-        alert(errorMessage);
+        showNotification(errorMessage, 'error');
     }
+};
+
+// Notification helper function
+const showNotification = (message, type = 'info') => {
+    // Remove any existing notifications
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    });
+    
+    // Create a toast notification element
+    const toast = document.createElement('div');
+    toast.className = `custom-notification fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-0 opacity-100 ${
+        type === 'success' 
+            ? 'bg-green-500 text-white' 
+            : type === 'error' 
+            ? 'bg-red-500 text-white' 
+            : 'bg-blue-500 text-white'
+    }`;
+    
+    // Add icon based on type
+    let icon = 'ℹ';
+    if (type === 'success') icon = '✓';
+    if (type === 'error') icon = '✗';
+    
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <span class="font-bold mr-2">${icon}</span>
+            <span class="text-sm font-medium">${message}</span>
+        </div>
+    `;
+    
+    // Add to document
+    document.body.appendChild(toast);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 5000);
 };
 </script>
 
@@ -856,5 +886,21 @@ i[class^="fas-"],
 i[class^="fab-"] {
     font-size: 2.5rem;
     line-height: 1;
+}
+
+/* Notification styles */
+.custom-notification {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 </style>

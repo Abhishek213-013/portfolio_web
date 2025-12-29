@@ -381,6 +381,47 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Notification System -->
+            <div class="fixed top-4 right-4 z-50 space-y-2">
+                <div 
+                    v-for="notification in notifications" 
+                    :key="notification.id"
+                    :class="[
+                        'p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300',
+                        notification.type === 'success' 
+                            ? 'bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' 
+                            : 'bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200'
+                    ]"
+                >
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg v-if="notification.type === 'success'" class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <svg v-else class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium">{{ notification.message }}</p>
+                        </div>
+                        <button 
+                            @click="removeNotification(notification.id)"
+                            class="ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                            :class="[
+                                notification.type === 'success' 
+                                    ? 'text-green-500 hover:text-green-700 focus:ring-green-400' 
+                                    : 'text-red-500 hover:text-red-700 focus:ring-red-400'
+                            ]"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </AdminLayout>
 </template>
@@ -397,6 +438,7 @@ const loading = ref(false);
 const initialLoading = ref(true);
 const editingId = ref(null);
 const contactInfo = ref([]);
+const notifications = ref([]);
 const form = reactive({
     type: 'address',
     icon: '',
@@ -460,10 +502,8 @@ const fetchContactInfo = async () => {
         console.error('Error fetching contact info:', error);
         contactInfo.value = [];
         
-        // Show error to user
-        if (router.page.props && router.page.props.flash) {
-            router.page.props.flash.error = 'Failed to load contact information. Please try again.';
-        }
+        // Show error notification
+        showNotification('Failed to load contact information. Please try again.', 'error');
     } finally {
         initialLoading.value = false;
     }
@@ -542,6 +582,26 @@ const resetForm = () => {
     });
 };
 
+const showNotification = (message, type = 'success') => {
+    const id = Date.now();
+    notifications.value.push({ id, message, type });
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        const index = notifications.value.findIndex(n => n.id === id);
+        if (index !== -1) {
+            notifications.value.splice(index, 1);
+        }
+    }, 5000);
+};
+
+const removeNotification = (id) => {
+    const index = notifications.value.findIndex(n => n.id === id);
+    if (index !== -1) {
+        notifications.value.splice(index, 1);
+    }
+};
+
 const saveContactInfo = async () => {
     loading.value = true;
     
@@ -557,30 +617,28 @@ const saveContactInfo = async () => {
             await fetchContactInfo();
             cancelEdit();
             
-            // Show success message
-            router.visit(window.location.pathname, {
-                preserveState: true,
-                preserveScroll: true,
-                only: [],
-                onSuccess: () => {
-                    if (router.page.props && router.page.props.flash) {
-                        router.page.props.flash.success = editingId.value 
-                            ? 'Contact information updated successfully!' 
-                            : 'Contact information added successfully!';
-                    }
-                }
-            });
+            // Show success notification
+            const successMessage = editingId.value 
+                ? 'Contact information updated successfully!' 
+                : 'Contact information added successfully!';
+            
+            showNotification(successMessage, 'success');
         }
     } catch (error) {
         console.error('Error saving contact info:', error);
         
-        // Show error message
-        const errorMessage = error.response?.data?.message || 
-                           (error.response?.data?.errors ? 
-                            Object.values(error.response.data.errors).flat().join(', ') : 
-                            'Failed to save contact information. Please try again.');
+        // Show error notification
+        let errorMessage = 'Failed to save contact information. Please try again.';
         
-        alert(errorMessage);
+        if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.response?.data?.errors) {
+            // Handle validation errors
+            const errors = error.response.data.errors;
+            errorMessage = Object.values(errors).flat().join(', ');
+        }
+        
+        showNotification(errorMessage, 'error');
     } finally {
         loading.value = false;
     }
@@ -593,24 +651,15 @@ const deleteContactInfo = async (id) => {
         await axios.delete(`/api/contact-info/${id}`);
         await fetchContactInfo();
         
-        // Show success message
-        router.visit(window.location.pathname, {
-            preserveState: true,
-            preserveScroll: true,
-            only: [],
-            onSuccess: () => {
-                if (router.page.props && router.page.props.flash) {
-                    router.page.props.flash.success = 'Contact information deleted successfully!';
-                }
-            }
-        });
+        // Show success notification
+        showNotification('Contact information deleted successfully!', 'success');
         
     } catch (error) {
         console.error('Error deleting contact info:', error);
         
-        // Show error message
+        // Show error notification
         const errorMessage = error.response?.data?.message || 'Failed to delete contact information. Please try again.';
-        alert(errorMessage);
+        showNotification(errorMessage, 'error');
     }
 };
 
@@ -627,13 +676,15 @@ const updateOrder = async () => {
         for (const contact of contactsWithOrder) {
             await axios.put(`/api/contact-info/${contact.id}`, { order: contact.order });
         }
+        
+        showNotification('Contact order updated successfully!', 'success');
         await fetchContactInfo();
     } catch (error) {
         console.error('Error updating order:', error);
         
-        // Show error message
+        // Show error notification
         const errorMessage = error.response?.data?.message || 'Failed to update contact information order. Please try again.';
-        alert(errorMessage);
+        showNotification(errorMessage, 'error');
         
         // Revert local changes on error
         await fetchContactInfo();

@@ -55,7 +55,7 @@
                         </div>
                         
                         <div v-if="form.image" class="mt-4 flex items-center space-x-4">
-                            <img :src="form.image instanceof File ? URL.createObjectURL(form.image) : form.image" 
+                            <img :src="formImageUrl" 
                                  class="h-24 w-24 object-cover rounded-full border-4 border-white dark:border-gray-800 shadow-md">
                             <div>
                                 <p class="text-sm font-medium text-gray-900 dark:text-white">Photo Preview</p>
@@ -449,6 +449,38 @@ const showToast = ref(false);
 const toastMessage = ref('');
 const toastType = ref('success');
 
+// Form data
+const form = reactive({
+    name: '',
+    position: '',
+    image: null,
+    content: '',
+    rating: 5,
+    order: 0,
+    is_active: true
+});
+
+// Helper function to check if value is a File object
+const isFile = (value) => {
+    return value && 
+           typeof value === 'object' && 
+           value.constructor && 
+           value.constructor.name === 'File';
+};
+
+// Helper function to get image URL
+const getImageUrl = (image) => {
+    if (!image) return null;
+    
+    // Check if it's a File object
+    if (isFile(image)) {
+        return URL.createObjectURL(image);
+    }
+    
+    // If it's already a string (URL)
+    return image;
+};
+
 // Computed properties
 const activeTestimonialsCount = computed(() => {
     return testimonials.value.filter(t => t.is_active).length;
@@ -464,16 +496,7 @@ const testimonialsWithPhotos = computed(() => {
     return testimonials.value.filter(t => t.image).length;
 });
 
-// Form data
-const form = reactive({
-    name: '',
-    position: '',
-    image: null,
-    content: '',
-    rating: 5,
-    order: 0,
-    is_active: true
-});
+const formImageUrl = computed(() => getImageUrl(form.image));
 
 // Lifecycle
 onMounted(() => {
@@ -618,10 +641,13 @@ const saveTestimonial = async () => {
         formData.append('order', form.order);
         formData.append('is_active', form.is_active ? '1' : '0');
         
-        if (form.image instanceof File) {
-            formData.append('image', form.image);
-        } else if (form.image && typeof form.image === 'string') {
-            formData.append('image_url', form.image);
+        // Handle image upload
+        if (form.image) {
+            if (isFile(form.image)) {
+                formData.append('image', form.image);
+            } else if (typeof form.image === 'string') {
+                formData.append('image_url', form.image);
+            }
         }
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;

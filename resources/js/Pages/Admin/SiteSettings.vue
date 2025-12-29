@@ -8,6 +8,32 @@
                 </div>
             </div>
 
+            <!-- Success/Error Messages -->
+            <div v-if="message" :class="[
+                'mb-6 p-4 rounded-lg border',
+                messageType === 'success' 
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+            ]">
+                <div class="flex items-center">
+                    <svg :class="[
+                        'h-5 w-5 mr-3',
+                        messageType === 'success' 
+                            ? 'text-green-400 dark:text-green-300' 
+                            : 'text-red-400 dark:text-red-300'
+                    ]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path v-if="messageType === 'success'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span :class="[
+                        'text-sm font-medium',
+                        messageType === 'success' 
+                            ? 'text-green-800 dark:text-green-300' 
+                            : 'text-red-800 dark:text-red-300'
+                    ]">{{ message }}</span>
+                </div>
+            </div>
+
             <!-- Site Settings Form -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
                 <form @submit.prevent="saveSettings" class="space-y-8">
@@ -371,11 +397,13 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import { router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const loading = ref(false);
 const siteSettings = ref(null);
+const message = ref('');
+const messageType = ref(''); // 'success' or 'error'
+
 const form = reactive({
     site_name: '',
     site_description: '',
@@ -396,7 +424,22 @@ onMounted(() => {
 const fetchSiteSettings = async () => {
     try {
         const response = await axios.get('/api/site-settings');
-        if (response.data) {
+        if (response.data && response.data.data) {
+            siteSettings.value = response.data.data;
+            Object.assign(form, {
+                site_name: response.data.data.site_name || '',
+                site_description: response.data.data.site_description || '',
+                footer_social_links: response.data.data.footer_social_links || [],
+                copyright_name: response.data.data.copyright_name || '',
+                copyright_text: response.data.data.copyright_text || '',
+                designer_name: response.data.data.designer_name || '',
+                designer_url: response.data.data.designer_url || '',
+                distributor_name: response.data.data.distributor_name || '',
+                distributor_url: response.data.data.distributor_url || '',
+                distributed_by_text: response.data.data.distributed_by_text || ''
+            });
+        } else if (response.data) {
+            // Handle direct response (without data wrapper)
             siteSettings.value = response.data;
             Object.assign(form, {
                 site_name: response.data.site_name || '',
@@ -413,6 +456,7 @@ const fetchSiteSettings = async () => {
         }
     } catch (error) {
         console.error('Error fetching site settings:', error);
+        showMessage('Error fetching site settings. Please try again.', 'error');
     }
 };
 
@@ -421,14 +465,16 @@ const addSocialLink = () => {
 };
 
 const removeSocialLink = (index) => {
-    form.footer_social_links.splice(index, 1);
+    if (confirm('Are you sure you want to remove this social link?')) {
+        form.footer_social_links.splice(index, 1);
+    }
 };
 
 const saveSettings = async () => {
     loading.value = true;
+    message.value = ''; // Clear previous messages
     
     try {
-        let response;
         const data = { ...form };
         
         // Filter out empty social links
@@ -436,39 +482,57 @@ const saveSettings = async () => {
             link.platform.trim() && link.url.trim()
         );
 
+        let response;
         if (siteSettings.value && siteSettings.value.id) {
             // Update existing
-            response = await axios.put(`/api/site-settings/${siteSettings.value.id}`, {
-                ...data,
-                _method: 'PUT'
-            });
+            response = await axios.put(`/api/site-settings/${siteSettings.value.id}`, data);
         } else {
             // Create new
             response = await axios.post('/api/site-settings', data);
         }
 
-        if (response.status === 200 || response.status === 201) {
-            siteSettings.value = response.data;
-            
-            // Show success message
-            if (router.page.props && router.page.props.setFlash) {
-                router.page.props.setFlash({
-                    type: 'success',
-                    message: 'Site settings saved successfully!'
-                });
+        if (response.data) {
+            // Handle both wrapped and direct responses
+            if (response.data.success && response.data.data) {
+                siteSettings.value = response.data.data;
+                showMessage(response.data.message || 'Settings saved successfully!', 'success');
+            } else if (response.data.id) {
+                // Direct response (no wrapper)
+                siteSettings.value = response.data;
+                showMessage('Settings saved successfully!', 'success');
             }
             
-            // Reload to show flash message
-            router.reload({ only: ['flash'] });
+            // Refresh data
+            await fetchSiteSettings();
         }
     } catch (error) {
         console.error('Error saving settings:', error);
         
-        // Show error message
-        const errorMessage = error.response?.data?.message || 'Failed to save settings. Please try again.';
-        alert(errorMessage);
+        let errorMsg = 'Failed to save settings. Please try again.';
+        
+        if (error.response?.data?.errors) {
+            // Format validation errors
+            const errors = error.response.data.errors;
+            errorMsg = Object.values(errors).flat().join('\n');
+        } else if (error.response?.data?.message) {
+            errorMsg = error.response.data.message;
+        }
+        
+        showMessage(errorMsg, 'error');
     } finally {
         loading.value = false;
+    }
+};
+
+const showMessage = (msg, type) => {
+    message.value = msg;
+    messageType.value = type;
+    
+    // Auto-hide success messages after 5 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            message.value = '';
+        }, 5000);
     }
 };
 </script>
@@ -577,5 +641,14 @@ button:focus {
     100% {
         opacity: 0.5;
     }
+}
+
+/* Message fade in/out */
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from, .fade-leave-to {
+    opacity: 0;
 }
 </style>

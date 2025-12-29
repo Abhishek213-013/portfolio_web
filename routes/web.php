@@ -10,7 +10,10 @@ use App\Http\Controllers\API\AboutController;
 use App\Http\Controllers\API\SkillController;
 use App\Http\Controllers\API\StatisticController;
 use App\Http\Controllers\API\ResumeController;
-use App\Http\Controllers\API\PortfolioController as ApiPortfolioController; // Add this import
+use App\Http\Controllers\API\PortfolioController as ApiPortfolioController;
+use App\Http\Controllers\API\ServiceController;
+use App\Http\Controllers\API\ContactInfoController;
+use App\Http\Controllers\API\SiteSettingController; // Add this import
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -136,13 +139,33 @@ Route::prefix('api')->group(function () {
     Route::delete('/resume-sections/{id}', [ResumeController::class, 'destroy']);
     Route::get('/resume-sections/type/{type}', [ResumeController::class, 'byType']);
     
-    // Portfolio Items API - Add these routes
+    // Portfolio Items API
     Route::get('/portfolio-items', [ApiPortfolioController::class, 'index']);
     Route::post('/portfolio-items', [ApiPortfolioController::class, 'store']);
     Route::get('/portfolio-items/{id}', [ApiPortfolioController::class, 'show']);
     Route::put('/portfolio-items/{id}', [ApiPortfolioController::class, 'update']);
     Route::delete('/portfolio-items/{id}', [ApiPortfolioController::class, 'destroy']);
     Route::get('/portfolio-items/category/{category}', [ApiPortfolioController::class, 'byCategory']);
+    
+    // Services API
+    Route::get('/services', [ServiceController::class, 'index']);
+    Route::post('/services', [ServiceController::class, 'store']);
+    Route::get('/services/{id}', [ServiceController::class, 'show']);
+    Route::put('/services/{id}', [ServiceController::class, 'update']);
+    Route::delete('/services/{id}', [ServiceController::class, 'destroy']);
+    
+    // Contact Info API
+    Route::get('/contact-info', [ContactInfoController::class, 'index']);
+    Route::post('/contact-info', [ContactInfoController::class, 'store']);
+    Route::get('/contact-info/{id}', [ContactInfoController::class, 'show']);
+    Route::put('/contact-info/{id}', [ContactInfoController::class, 'update']);
+    Route::delete('/contact-info/{id}', [ContactInfoController::class, 'destroy']);
+    
+    // Site Settings API - ADD THESE ROUTES
+    Route::get('/site-settings', [SiteSettingController::class, 'index']);
+    Route::post('/site-settings', [SiteSettingController::class, 'store']);
+    Route::put('/site-settings/{id}', [SiteSettingController::class, 'update']);
+    Route::delete('/site-settings/{id}', [SiteSettingController::class, 'destroy']);
 });
 
 // Handle all other routes (404)
