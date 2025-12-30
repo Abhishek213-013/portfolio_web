@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
-use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\PortfolioController; // This controller needs to exist
 use App\Http\Controllers\API\HeroController;
 use App\Http\Controllers\API\TestimonialController;
 use App\Http\Controllers\API\AboutController;
@@ -13,7 +13,7 @@ use App\Http\Controllers\API\ResumeController;
 use App\Http\Controllers\API\PortfolioController as ApiPortfolioController;
 use App\Http\Controllers\API\ServiceController;
 use App\Http\Controllers\API\ContactInfoController;
-use App\Http\Controllers\API\SiteSettingController; // Add this import
+use App\Http\Controllers\API\SiteSettingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,8 +27,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Public portfolio route (Main website)
-Route::get('/', [PortfolioController::class, 'index'])->name('home');
+// Public portfolio route (Main website) - Using Inertia
+Route::get('/', function () {
+    return inertia('Portfolio'); // This points to resources/js/Pages/Portfolio.vue
+})->name('home');
+
+// OR if you have a PortfolioController with index method:
+// Route::get('/', [PortfolioController::class, 'index'])->name('home');
 
 // Admin routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -95,7 +100,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-// API Routes
+// API Routes - For the portfolio frontend to fetch data
 Route::prefix('api')->group(function () {
     // Hero Section API
     Route::get('/hero', [HeroController::class, 'index']);
@@ -153,6 +158,9 @@ Route::prefix('api')->group(function () {
     Route::get('/services/{id}', [ServiceController::class, 'show']);
     Route::put('/services/{id}', [ServiceController::class, 'update']);
     Route::delete('/services/{id}', [ServiceController::class, 'destroy']);
+    Route::post('/services/order', [ServiceController::class, 'updateOrder']);
+    Route::post('/services/bulk-update', [ServiceController::class, 'bulkUpdate']);
+    Route::get('/services/active', [ServiceController::class, 'active']);
     
     // Contact Info API
     Route::get('/contact-info', [ContactInfoController::class, 'index']);
@@ -161,14 +169,54 @@ Route::prefix('api')->group(function () {
     Route::put('/contact-info/{id}', [ContactInfoController::class, 'update']);
     Route::delete('/contact-info/{id}', [ContactInfoController::class, 'destroy']);
     
-    // Site Settings API - ADD THESE ROUTES
+    // Site Settings API
     Route::get('/site-settings', [SiteSettingController::class, 'index']);
     Route::post('/site-settings', [SiteSettingController::class, 'store']);
     Route::put('/site-settings/{id}', [SiteSettingController::class, 'update']);
     Route::delete('/site-settings/{id}', [SiteSettingController::class, 'destroy']);
+    Route::get('/site-settings/public', [SiteSettingController::class, 'publicSettings']);
+    
+    // Public APIs (no auth required for frontend)
+    Route::prefix('public')->group(function () {
+        Route::get('/hero', [HeroController::class, 'index']);
+        Route::get('/about', [AboutController::class, 'index']);
+        Route::get('/skills', [SkillController::class, 'index']);
+        Route::get('/statistics', [StatisticController::class, 'index']);
+        Route::get('/resume-sections', [ResumeController::class, 'index']);
+        Route::get('/portfolio-items', [ApiPortfolioController::class, 'index']);
+        Route::get('/services', [ServiceController::class, 'active']); // Only active services
+        Route::get('/testimonials', [TestimonialController::class, 'index']);
+        Route::get('/contact-info', [ContactInfoController::class, 'index']);
+        Route::get('/site-settings', [SiteSettingController::class, 'publicSettings']);
+    });
 });
+
+// Contact Form Submission Route
+Route::post('/contact', function (\Illuminate\Http\Request $request) {
+    // Validate the request
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email',
+        'subject' => 'required|string|max:255',
+        'message' => 'required|string'
+    ]);
+    
+    // Here you can:
+    // 1. Save to database
+    // 2. Send email notification
+    // 3. Integrate with a CRM
+    
+    // For now, just return success
+    return response()->json([
+        'success' => true,
+        'message' => 'Thank you for your message! I will get back to you soon.'
+    ]);
+})->name('contact.submit');
 
 // Handle all other routes (404)
 Route::fallback(function () {
-    return inertia('NotFound');
+    return inertia('NotFound', [
+        'status' => 404,
+        'message' => 'Page Not Found'
+    ]);
 });
