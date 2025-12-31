@@ -1,680 +1,763 @@
 <template>
     <div class="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-        <!-- Navigation -->
-        <nav class="fixed w-full z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
+        <!-- Sidebar Navigation -->
+        <nav class="fixed left-0 top-0 h-full w-16 md:w-20 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-50 flex flex-col items-center py-6 transition-all duration-300 hover:w-64 md:hover:w-72 group"
+             :class="{
+                 'w-64 md:w-72': isSidebarOpen,
+                 'translate-x-0': isSidebarOpen,
+                 '-translate-x-full md:translate-x-0': !isSidebarOpen
+             }"
+             @mouseenter="isSidebarOpen = true"
+             @mouseleave="isSidebarOpen = false">
+            
+            <!-- Close Button (Mobile Only) -->
+            <button @click="isSidebarOpen = false" 
+                    class="absolute top-4 right-4 p-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 md:hidden">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <!-- Logo/Profile -->
+            <div class="mb-6 flex flex-col items-center">
+                <div class="h-10 w-10 md:h-12 md:w-12 rounded-full overflow-hidden border-2 border-indigo-500 dark:border-indigo-400 mb-4">
+                    <img v-if="heroData?.background_image" 
+                         :src="heroData.background_image" 
+                         alt="Profile"
+                         class="w-full h-full object-cover">
+                    <div v-else 
+                         class="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">
+                            {{ heroData?.name?.charAt(0) || 'Y' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="text-center overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100"
+                     :class="{'opacity-100': isSidebarOpen}">
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                        {{ heroData?.name?.split(' ')[0] || 'Your' }}
+                    </h3>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                        {{ heroData?.roles?.[0]?.split(' ')[0] || 'Dev' }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <ul class="flex-1 space-y-0 w-full">
+                <li v-for="(nav, index) in navigation" 
+                    :key="index"
+                    class="relative">
+                    <a :href="nav.href"
+                       @click.prevent="scrollToSection(nav.id)"
+                       class="flex items-center h-12 px-4 md:px-6 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
+                       :class="{'text-indigo-600 dark:text-indigo-400': activeSection === nav.id}">
+                        <div class="w-6 flex-shrink-0 flex items-center justify-center">
+                            <i class="text-lg" :class="getNavIcon(nav.name)"></i>
+                        </div>
+                        <span class="ml-4 text-sm font-medium whitespace-nowrap transition-all duration-300 opacity-0 group-hover:opacity-100"
+                              :class="{'opacity-100': isSidebarOpen}">
+                            {{ nav.name }}
+                        </span>
+                        <div v-if="activeSection === nav.id" 
+                             class="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-1 bg-indigo-600 dark:bg-indigo-400 rounded-l-full">
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Mobile Overlay -->
+        <div v-if="isSidebarOpen && windowWidth < 768" 
+             @click="isSidebarOpen = false"
+             class="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300"></div>
+
+        <!-- Main Content -->
+        <div class="transition-all duration-300 ml-0 md:ml-16 lg:ml-20"
+             :class="{'md:ml-64 lg:ml-72': isSidebarOpen}">
+            
+            <!-- Top Header (for mobile) -->
+            <!-- <header class="sticky top-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+                <div class="px-4 h-16 flex items-center justify-between">
                     <div class="flex items-center">
-                        <a href="#" class="text-2xl font-bold text-gray-900 dark:text-white">
-                            <span class="text-indigo-600 dark:text-indigo-400">{{ siteSettings.site_name || 'Portfolio' }}</span>
+                        <button @click="isSidebarOpen = true" 
+                                class="p-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 md:hidden">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                        <a href="#" class="ml-4 text-xl font-bold text-gray-900 dark:text-white">
+                            <span class="text-indigo-600 dark:text-indigo-400">{{ siteSettings?.site_name || 'Portfolio' }}</span>
                         </a>
                     </div>
-                    <div class="hidden md:block">
-                        <div class="flex items-center space-x-8">
-                            <a v-for="(nav, index) in navigation" 
-                               :key="index"
-                               :href="nav.href"
-                               @click.prevent="scrollToSection(nav.id)"
-                               class="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium"
-                               :class="{ 'text-indigo-600 dark:text-indigo-400': activeSection === nav.id }">
-                                {{ nav.name }}
-                            </a>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <button @click="toggleTheme" class="p-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                    
+                    <button @click="toggleTheme" 
+                            class="p-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                        <div class="flex items-center">
                             <svg v-if="isDark" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
                             </svg>
                             <svg v-else class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                             </svg>
-                        </button>
-                        <a href="/admin/dashboard" class="px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors text-sm font-medium">
-                            Admin
+                            <span class="ml-2 text-sm font-medium md:hidden">
+                                {{ isDark ? 'Light' : 'Dark' }}
+                            </span>
+                        </div>
+                    </button>
+                </div>
+            </header> -->
+
+            <!-- Floating Theme Toggle for Desktop (Top Right) -->
+            <button @click="toggleTheme" 
+                    class="fixed top-8 right-8 z-40 hidden md:flex items-center p-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+                <svg v-if="isDark" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
+                </svg>
+                <svg v-else class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+            </button>
+
+            <!-- Loading State -->
+            <div v-if="loading" class="flex items-center justify-center min-h-screen">
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 dark:border-indigo-400 mb-4"></div>
+                    <p class="text-gray-600 dark:text-gray-400">Loading portfolio...</p>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div v-else>
+                <!-- Hero Section -->
+                <section id="home" class="pt-16 md:pt-24 pb-16 md:pb-24 relative overflow-hidden">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                            <!-- Left Content -->
+                            <div class="text-center lg:text-left">
+                                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+                                    {{ heroData?.name || 'Your Name' }}
+                                </h1>
+                                <div class="text-2xl md:text-3xl text-gray-600 dark:text-gray-300 mb-8">
+                                    I'm a <span class="text-indigo-600 dark:text-indigo-400 font-semibold">
+                                        {{ heroData?.roles?.[0] || 'Your Profession' }}
+                                    </span>
+                                </div>
+                                <div v-if="heroData?.roles?.length > 1" class="flex flex-wrap gap-3 justify-center lg:justify-start mb-8">
+                                    <span v-for="(role, index) in heroData.roles.slice(1)" 
+                                          :key="index"
+                                          class="px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm font-medium">
+                                        {{ role }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-center lg:justify-start space-x-6">
+                                    <a v-for="social in heroData?.social_links || []" 
+                                       :key="social.platform"
+                                       :href="social.url"
+                                       target="_blank"
+                                       class="h-12 w-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+                                       :title="social.platform">
+                                        <i v-if="social.icon" :class="social.icon" class="text-xl text-gray-700 dark:text-gray-300"></i>
+                                        <span v-else class="text-sm font-medium">{{ social.platform?.charAt(0) }}</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Image -->
+                            <div class="relative">
+                                <div class="relative w-64 h-64 md:w-80 md:h-80 mx-auto">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 dark:from-indigo-500 dark:to-purple-500 rounded-full transform rotate-6"></div>
+                                    <div v-if="heroData?.background_image" 
+                                         class="relative w-full h-full rounded-full overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl">
+                                        <img :src="heroData.background_image" 
+                                             alt="Profile"
+                                             class="w-full h-full object-cover">
+                                    </div>
+                                    <div v-else 
+                                         class="relative w-full h-full rounded-full overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                                        <span class="text-6xl font-bold text-gray-600 dark:text-gray-400">
+                                            {{ heroData?.name?.charAt(0) || 'Y' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Floating Elements -->
+                                <!-- <div class="absolute -top-4 -right-4 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-4 shadow-xl">
+                                    <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">5+</div>
+                                    <div class="text-sm text-yellow-800 dark:text-yellow-300">Years Exp.</div>
+                                </div>
+                                <div class="absolute -bottom-4 -left-4 bg-green-100 dark:bg-green-900/30 rounded-lg p-4 shadow-xl">
+                                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">50+</div>
+                                    <div class="text-sm text-green-800 dark:text-green-300">Projects</div>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Scroll Indicator -->
+                    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+                        <a href="#about" 
+                           @click.prevent="scrollToSection('about')"
+                           class="animate-bounce">
+                            <svg class="h-8 w-8 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                            </svg>
                         </a>
                     </div>
-                </div>
-            </div>
-        </nav>
+                </section>
 
-        <!-- Hero Section -->
-        <section id="home" class="pt-24 pb-16 md:pt-32 md:pb-24 relative overflow-hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    <!-- Left Content -->
-                    <div class="text-center lg:text-left">
-                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-                            {{ heroData.name || 'Your Name' }}
-                        </h1>
-                        <div class="text-2xl md:text-3xl text-gray-600 dark:text-gray-300 mb-8">
-                            I'm a <span class="text-indigo-600 dark:text-indigo-400 font-semibold">
-                                {{ heroData.roles && heroData.roles.length > 0 ? heroData.roles[0] : 'Your Profession' }}
-                            </span>
+                <!-- About Section -->
+                <section id="about" class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">About Me</h2>
+                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                                {{ aboutData?.description || 'A brief introduction about yourself and your expertise' }}
+                            </p>
                         </div>
-                        <div v-if="heroData.roles && heroData.roles.length > 1" class="flex flex-wrap gap-3 justify-center lg:justify-start mb-8">
-                            <span v-for="(role, index) in heroData.roles.slice(1)" 
-                                  :key="index"
-                                  class="px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm font-medium">
-                                {{ role }}
-                            </span>
-                        </div>
-                        <div class="flex justify-center lg:justify-start space-x-6">
-                            <a v-for="social in heroData.social_links" 
-                               :key="social.platform"
-                               :href="social.url"
-                               target="_blank"
-                               class="h-12 w-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
-                               :title="social.platform">
-                                <i v-if="social.icon" :class="social.icon" class="text-xl text-gray-700 dark:text-gray-300"></i>
-                                <span v-else class="text-sm font-medium">{{ social.platform?.charAt(0) }}</span>
-                            </a>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                            <!-- Profile Image -->
+                            <div class="relative">
+                                <div class="relative w-64 h-64 md:w-96 md:h-96 mx-auto">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 dark:from-blue-500 dark:to-cyan-500 rounded-lg transform rotate-3"></div>
+                                    <div v-if="aboutData?.profile_image" 
+                                         class="relative w-full h-full rounded-lg overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl">
+                                        <img :src="aboutData.profile_image" 
+                                             alt="About"
+                                             class="w-full h-full object-cover">
+                                    </div>
+                                    <div v-else 
+                                         class="relative w-full h-full rounded-lg overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                                        <svg class="h-32 w-32 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- About Content -->
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ aboutData?.title || 'About Me' }}</h3>
+                                <p class="text-lg text-gray-600 dark:text-gray-300 mb-6 italic">
+                                    "{{ aboutData?.bio || 'Your professional bio or tagline' }}"
+                                </p>
+                                <p class="text-gray-700 dark:text-gray-400 mb-8 leading-relaxed">
+                                    {{ aboutData?.extended_bio || 'Detailed description about your experience, skills, and achievements...' }}
+                                </p>
+                                
+                                <div v-if="aboutData?.personal_details" class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                                    <div v-for="(side, sideName) in aboutData.personal_details" :key="sideName">
+                                        <div v-for="detail in side" :key="detail.label" class="mb-4">
+                                            <div class="flex items-center">
+                                                <span class="font-medium text-gray-900 dark:text-white min-w-28">{{ detail.label }}:</span>
+                                                <span class="text-gray-600 dark:text-gray-400">{{ detail.value }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex space-x-4">
+                                    <a href="#contact" 
+                                       @click.prevent="scrollToSection('contact')"
+                                       class="px-6 py-3 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors font-medium">
+                                        Contact Me
+                                    </a>
+                                    <a href="#portfolio" 
+                                       @click.prevent="scrollToSection('portfolio')"
+                                       class="px-6 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium">
+                                        View Portfolio
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- Right Image -->
-                    <div class="relative">
-                        <div class="relative w-64 h-64 md:w-80 md:h-80 mx-auto">
-                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 dark:from-indigo-500 dark:to-purple-500 rounded-full transform rotate-6"></div>
-                            <div v-if="heroData.background_image" 
-                                 class="relative w-full h-full rounded-full overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl">
-                                <img :src="heroData.background_image" 
-                                     alt="Profile"
-                                     class="w-full h-full object-cover">
+                </section>
+
+                <!-- Stats Section -->
+                <section id="stats" class="py-16 md:py-24 bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-600 dark:to-purple-600">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                            <div v-for="stat in statistics" :key="stat.id" class="text-center">
+                                <div class="mb-4">
+                                    <i :class="stat.icon" class="text-4xl text-white"></i>
+                                </div>
+                                <div class="text-4xl md:text-5xl font-bold text-white mb-2">{{ formatNumber(stat.value) }}</div>
+                                <div class="text-lg text-white/90">{{ stat.label }}</div>
                             </div>
-                            <div v-else 
-                                 class="relative w-full h-full rounded-full overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                                <span class="text-6xl font-bold text-gray-600 dark:text-gray-400">
-                                    {{ heroData.name?.charAt(0) || 'Y' }}
-                                </span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Skills Section -->
+                <section id="skills" class="py-16 md:py-24">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Skills</h2>
+                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                                Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit
+                            </p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <!-- Left Column -->
+                            <div>
+                                <div v-for="skill in leftSkills" :key="skill.id" class="mb-8">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="font-medium text-gray-900 dark:text-white">{{ skill.name }}</span>
+                                        <span class="text-sm font-medium text-indigo-600 dark:text-indigo-400">{{ skill.percentage }}%</span>
+                                    </div>
+                                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400 rounded-full transition-all duration-1000"
+                                             :style="{ width: skill.percentage + '%' }">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column -->
+                            <div>
+                                <div v-for="skill in rightSkills" :key="skill.id" class="mb-8">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="font-medium text-gray-900 dark:text-white">{{ skill.name }}</span>
+                                        <span class="text-sm font-medium text-green-600 dark:text-green-400">{{ skill.percentage }}%</span>
+                                    </div>
+                                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-green-500 to-teal-500 dark:from-green-400 dark:to-teal-400 rounded-full transition-all duration-1000"
+                                             :style="{ width: skill.percentage + '%' }">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Resume Section -->
+                <section id="resume" class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Resume</h2>
+                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                                Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem.
+                            </p>
+                        </div>
+                        
+                        <!-- Summary -->
+                        <div v-if="summarySections.length > 0" class="mb-12">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">Sumary</h3>
+                            <div class="max-w-4xl mx-auto">
+                                <div v-for="section in summarySections" :key="section.id" 
+                                     class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
+                                    <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ section.title || heroData?.name }}</h4>
+                                    <p class="text-gray-700 dark:text-gray-300 mb-6 italic">{{ section.description }}</p>
+                                    <ul v-if="section.details && section.details.length > 0" class="space-y-2">
+                                        <li v-for="(detail, index) in section.details" :key="index" 
+                                            class="flex items-start text-gray-600 dark:text-gray-400">
+                                            <svg class="h-5 w-5 text-indigo-500 dark:text-indigo-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            {{ detail }}
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- Floating Elements -->
-                        <div class="absolute -top-4 -right-4 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-4 shadow-xl">
-                            <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">5+</div>
-                            <div class="text-sm text-yellow-800 dark:text-yellow-300">Years Exp.</div>
-                        </div>
-                        <div class="absolute -bottom-4 -left-4 bg-green-100 dark:bg-green-900/30 rounded-lg p-4 shadow-xl">
-                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">50+</div>
-                            <div class="text-sm text-green-800 dark:text-green-300">Projects</div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <!-- Education -->
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">Education</h3>
+                                <div class="relative">
+                                    <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+                                    <div v-for="(edu, index) in educationSections" :key="edu.id" 
+                                         :class="['relative pl-12 pb-8', index === educationSections.length - 1 ? '' : 'border-b border-gray-200 dark:border-gray-700']">
+                                        <div class="absolute left-0 top-0 h-8 w-8 rounded-full bg-indigo-500 dark:bg-indigo-400 flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z M12 14l9-5-9-5-9 5 9 5z M12 14v6l9-5M12 14l-9-5v10l9 5"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="mb-2">
+                                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ edu.title }}</h4>
+                                            <p class="text-gray-600 dark:text-gray-400">{{ edu.subtitle || edu.institution }}</p>
+                                        </div>
+                                        <p class="text-sm text-indigo-600 dark:text-indigo-400 mb-3">{{ edu.period }}</p>
+                                        <p class="text-gray-700 dark:text-gray-300 mb-3">{{ edu.description }}</p>
+                                        <ul v-if="edu.details && edu.details.length > 0" class="space-y-1">
+                                            <li v-for="(detail, detailIndex) in edu.details" :key="detailIndex" 
+                                                class="text-sm text-gray-600 dark:text-gray-400 flex items-start">
+                                                <span class="text-indigo-500 dark:text-indigo-400 mr-2">•</span>
+                                                {{ detail }}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Experience -->
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">Experience</h3>
+                                <div class="relative">
+                                    <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+                                    <div v-for="(exp, index) in experienceSections" :key="exp.id" 
+                                         :class="['relative pl-12 pb-8', index === experienceSections.length - 1 ? '' : 'border-b border-gray-200 dark:border-gray-700']">
+                                        <div class="absolute left-0 top-0 h-8 w-8 rounded-full bg-green-500 dark:bg-green-400 flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="mb-2">
+                                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ exp.title }}</h4>
+                                            <p class="text-gray-600 dark:text-gray-400">{{ exp.subtitle || exp.institution }}</p>
+                                        </div>
+                                        <p class="text-sm text-green-600 dark:text-green-400 mb-3">{{ exp.period }}</p>
+                                        <p class="text-gray-700 dark:text-gray-300 mb-3">{{ exp.description }}</p>
+                                        <ul v-if="exp.details && exp.details.length > 0" class="space-y-1">
+                                            <li v-for="(detail, detailIndex) in exp.details" :key="detailIndex" 
+                                                class="text-sm text-gray-600 dark:text-gray-400 flex items-start">
+                                                <span class="text-green-500 dark:text-green-400 mr-2">•</span>
+                                                {{ detail }}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Scroll Indicator -->
-            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-                <a href="#about" 
-                   @click.prevent="scrollToSection('about')"
-                   class="animate-bounce">
-                    <svg class="h-8 w-8 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                    </svg>
-                </a>
-            </div>
-        </section>
+                </section>
 
-        <!-- About Section -->
-        <section id="about" class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">About Me</h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                        {{ aboutData.description || 'A brief introduction about yourself and your expertise' }}
-                    </p>
-                </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    <!-- Profile Image -->
-                    <div class="relative">
-                        <div class="relative w-64 h-64 md:w-96 md:h-96 mx-auto">
-                            <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 dark:from-blue-500 dark:to-cyan-500 rounded-lg transform rotate-3"></div>
-                            <div v-if="aboutData.profile_image" 
-                                 class="relative w-full h-full rounded-lg overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl">
-                                <img :src="aboutData.profile_image" 
-                                     alt="About"
-                                     class="w-full h-full object-cover">
-                            </div>
-                            <div v-else 
-                                 class="relative w-full h-full rounded-lg overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                                <svg class="h-32 w-32 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                            </div>
+                <!-- Portfolio Section -->
+                <section id="portfolio" class="py-16 md:py-24">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Portfolio</h2>
+                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                                Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem.
+                            </p>
                         </div>
-                    </div>
-                    
-                    <!-- About Content -->
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ aboutData.title || 'About Me' }}</h3>
-                        <p class="text-lg text-gray-600 dark:text-gray-300 mb-6 italic">
-                            "{{ aboutData.bio || 'Your professional bio or tagline' }}"
-                        </p>
-                        <p class="text-gray-700 dark:text-gray-400 mb-8 leading-relaxed">
-                            {{ aboutData.extended_bio || 'Detailed description about your experience, skills, and achievements...' }}
-                        </p>
                         
-                        <div v-if="aboutData.personal_details" class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                            <div v-for="(side, sideName) in aboutData.personal_details" :key="sideName">
-                                <div v-for="detail in side" :key="detail.label" class="mb-4">
-                                    <div class="flex items-center">
-                                        <span class="font-medium text-gray-900 dark:text-white min-w-28">{{ detail.label }}:</span>
-                                        <span class="text-gray-600 dark:text-gray-400">{{ detail.value }}</span>
+                        <!-- Filter Buttons -->
+                        <div class="flex flex-wrap justify-center gap-4 mb-12">
+                            <button v-for="category in portfolioCategories" 
+                                    :key="category.value"
+                                    @click="activePortfolioCategory = category.value"
+                                    :class="[
+                                        'px-6 py-2 rounded-full text-sm font-medium transition-all',
+                                        activePortfolioCategory === category.value
+                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                                    ]">
+                                {{ category.label }}
+                            </button>
+                        </div>
+                        
+                        <!-- Portfolio Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <div v-for="item in filteredPortfolio" :key="item.id"
+                                 class="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                                <div class="relative overflow-hidden h-56">
+                                    <img :src="item.image" 
+                                         :alt="item.title"
+                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div class="absolute bottom-4 left-4">
+                                        <span :class="[
+                                            'px-3 py-1 text-xs font-medium rounded-full',
+                                            getCategoryColor(item.category)
+                                        ]">
+                                            {{ getCategoryLabel(item.category) }}
+                                        </span>
+                                    </div>
+                                    <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <a v-if="item.details_url" 
+                                           :href="item.details_url" 
+                                           target="_blank"
+                                           class="h-10 w-10 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center shadow-lg">
+                                            <svg class="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="p-6">
+                                    <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-3">{{ item.title }}</h4>
+                                    <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">{{ item.description }}</p>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ formatDate(item.created_at) }}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="flex space-x-4">
-                            <a href="#contact" 
-                               @click.prevent="scrollToSection('contact')"
-                               class="px-6 py-3 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors font-medium">
-                                Contact Me
-                            </a>
-                            <a href="#portfolio" 
-                               @click.prevent="scrollToSection('portfolio')"
-                               class="px-6 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium">
-                                View Portfolio
-                            </a>
+                        <!-- Empty State -->
+                        <div v-if="filteredPortfolio.length === 0" class="text-center py-12">
+                            <div class="h-16 w-16 mx-auto bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                                <svg class="h-8 w-8 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400">No projects found in this category</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        </section>
+                </section>
 
-        <!-- Skills Section -->
-        <section id="skills" class="py-16 md:py-24">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">My Skills</h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                        Technologies and tools I'm proficient with
-                    </p>
-                </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <!-- Left Column -->
-                    <div>
-                        <div v-for="skill in leftSkills" :key="skill.id" class="mb-8">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="font-medium text-gray-900 dark:text-white">{{ skill.name }}</span>
-                                <span class="text-sm font-medium text-indigo-600 dark:text-indigo-400">{{ skill.percentage }}%</span>
-                            </div>
-                            <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400 rounded-full transition-all duration-1000"
-                                     :style="{ width: skill.percentage + '%' }">
-                                </div>
-                            </div>
+                <!-- Services Section -->
+                <section id="services" class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Services</h2>
+                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                                Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem.
+                            </p>
                         </div>
-                    </div>
-                    
-                    <!-- Right Column -->
-                    <div>
-                        <div v-for="skill in rightSkills" :key="skill.id" class="mb-8">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="font-medium text-gray-900 dark:text-white">{{ skill.name }}</span>
-                                <span class="text-sm font-medium text-green-600 dark:text-green-400">{{ skill.percentage }}%</span>
-                            </div>
-                            <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-green-500 to-teal-500 dark:from-green-400 dark:to-teal-400 rounded-full transition-all duration-1000"
-                                     :style="{ width: skill.percentage + '%' }">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <div v-for="service in services" :key="service.id"
+                                 :class="[
+                                     'group bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2',
+                                     getServiceColor(service.color).bg
+                                 ]">
+                                <div class="mb-6">
+                                    <div :class="[
+                                        'inline-flex h-16 w-16 items-center justify-center rounded-2xl mb-4',
+                                        getServiceColor(service.color).iconBg
+                                    ]">
+                                        <i :class="[service.icon, getServiceColor(service.color).icon]" class="text-2xl"></i>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Statistics Section -->
-        <section class="py-16 md:py-24 bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-600 dark:to-purple-600">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-                    <div v-for="stat in statistics" :key="stat.id" class="text-center">
-                        <div class="mb-4">
-                            <i :class="stat.icon" class="text-4xl text-white"></i>
-                        </div>
-                        <div class="text-4xl md:text-5xl font-bold text-white mb-2">{{ formatNumber(stat.value) }}</div>
-                        <div class="text-lg text-white/90">{{ stat.label }}</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Resume Section -->
-        <section id="resume" class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">My Resume</h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                        My professional journey and qualifications
-                    </p>
-                </div>
-                
-                <!-- Summary -->
-                <div v-if="summarySections.length > 0" class="mb-12">
-                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">Professional Summary</h3>
-                    <div class="max-w-4xl mx-auto">
-                        <div v-for="section in summarySections" :key="section.id" 
-                             class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
-                            <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ section.title }}</h4>
-                            <p class="text-gray-700 dark:text-gray-300 mb-6">{{ section.description }}</p>
-                            <ul v-if="section.details && section.details.length > 0" class="space-y-2">
-                                <li v-for="(detail, index) in section.details" :key="index" 
-                                    class="flex items-start text-gray-600 dark:text-gray-400">
-                                    <svg class="h-5 w-5 text-indigo-500 dark:text-indigo-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                    {{ detail }}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <!-- Education -->
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">Education</h3>
-                        <div class="relative">
-                            <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
-                            <div v-for="(edu, index) in educationSections" :key="edu.id" 
-                                 :class="['relative pl-12 pb-8', index === educationSections.length - 1 ? '' : 'border-b border-gray-200 dark:border-gray-700']">
-                                <div class="absolute left-0 top-0 h-8 w-8 rounded-full bg-indigo-500 dark:bg-indigo-400 flex items-center justify-center">
-                                    <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z M12 14l9-5-9-5-9 5 9 5z M12 14v6l9-5M12 14l-9-5v10l9 5"></path>
-                                    </svg>
-                                </div>
-                                <div class="mb-2">
-                                    <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ edu.title }}</h4>
-                                    <p class="text-gray-600 dark:text-gray-400">{{ edu.subtitle || edu.institution }}</p>
-                                </div>
-                                <p class="text-sm text-indigo-600 dark:text-indigo-400 mb-3">{{ edu.period }}</p>
-                                <p class="text-gray-700 dark:text-gray-300 mb-3">{{ edu.description }}</p>
-                                <ul v-if="edu.details && edu.details.length > 0" class="space-y-1">
-                                    <li v-for="(detail, detailIndex) in edu.details" :key="detailIndex" 
-                                        class="text-sm text-gray-600 dark:text-gray-400 flex items-start">
-                                        <span class="text-indigo-500 dark:text-indigo-400 mr-2">•</span>
-                                        {{ detail }}
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Experience -->
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">Experience</h3>
-                        <div class="relative">
-                            <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
-                            <div v-for="(exp, index) in experienceSections" :key="exp.id" 
-                                 :class="['relative pl-12 pb-8', index === experienceSections.length - 1 ? '' : 'border-b border-gray-200 dark:border-gray-700']">
-                                <div class="absolute left-0 top-0 h-8 w-8 rounded-full bg-green-500 dark:bg-green-400 flex items-center justify-center">
-                                    <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                    </svg>
-                                </div>
-                                <div class="mb-2">
-                                    <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ exp.title }}</h4>
-                                    <p class="text-gray-600 dark:text-gray-400">{{ exp.subtitle || exp.institution }}</p>
-                                </div>
-                                <p class="text-sm text-green-600 dark:text-green-400 mb-3">{{ exp.period }}</p>
-                                <p class="text-gray-700 dark:text-gray-300 mb-3">{{ exp.description }}</p>
-                                <ul v-if="exp.details && exp.details.length > 0" class="space-y-1">
-                                    <li v-for="(detail, detailIndex) in exp.details" :key="detailIndex" 
-                                        class="text-sm text-gray-600 dark:text-gray-400 flex items-start">
-                                        <span class="text-green-500 dark:text-green-400 mr-2">•</span>
-                                        {{ detail }}
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Portfolio Section -->
-        <section id="portfolio" class="py-16 md:py-24">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">My Portfolio</h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                        A showcase of my recent projects and work
-                    </p>
-                </div>
-                
-                <!-- Filter Buttons -->
-                <div class="flex flex-wrap justify-center gap-4 mb-12">
-                    <button v-for="category in portfolioCategories" 
-                            :key="category.value"
-                            @click="activePortfolioCategory = category.value"
-                            :class="[
-                                'px-6 py-2 rounded-full text-sm font-medium transition-all',
-                                activePortfolioCategory === category.value
-                                    ? 'bg-indigo-600 text-white dark:bg-indigo-500'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                            ]">
-                        {{ category.label }}
-                    </button>
-                </div>
-                
-                <!-- Portfolio Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div v-for="item in filteredPortfolio" :key="item.id"
-                         class="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                        <div class="relative overflow-hidden h-56">
-                            <img :src="item.image" 
-                                 :alt="item.title"
-                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            <div class="absolute bottom-4 left-4">
-                                <span :class="[
-                                    'px-3 py-1 text-xs font-medium rounded-full',
-                                    getCategoryColor(item.category)
-                                ]">
-                                    {{ getCategoryLabel(item.category) }}
-                                </span>
-                            </div>
-                            <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <a v-if="item.details_url" 
-                                   :href="item.details_url" 
-                                   target="_blank"
-                                   class="h-10 w-10 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center shadow-lg">
-                                    <svg class="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ service.title }}</h4>
+                                <p class="text-gray-600 dark:text-gray-300 mb-6">{{ service.description }}</p>
+                                <div class="flex items-center text-indigo-600 dark:text-indigo-400 font-medium">
+                                    <span>Learn more</span>
+                                    <svg class="h-5 w-5 ml-2 transform group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                                     </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Testimonials Section -->
+                <section id="testimonials" class="py-16 md:py-24">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Testimonials</h2>
+                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                                Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit
+                            </p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <div v-for="testimonial in testimonials" :key="testimonial.id"
+                                 class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+                                <div class="flex items-center mb-6">
+                                    <div v-if="testimonial.image" class="h-12 w-12 rounded-full overflow-hidden mr-4">
+                                        <img :src="testimonial.image" 
+                                             :alt="testimonial.name"
+                                             class="w-full h-full object-cover">
+                                    </div>
+                                    <div v-else 
+                                         class="h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-500 dark:from-indigo-600 dark:to-purple-600 rounded-full flex items-center justify-center mr-4">
+                                        <span class="text-white font-bold">{{ testimonial.name?.charAt(0) }}</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-900 dark:text-white">{{ testimonial.name }}</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ testimonial.position }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <div class="flex">
+                                        <svg v-for="star in 5" :key="star"
+                                             :class="[
+                                                 'h-5 w-5',
+                                                 star <= testimonial.rating 
+                                                     ? 'text-yellow-400 fill-current' 
+                                                     : 'text-gray-300 dark:text-gray-600'
+                                             ]">
+                                            <use xlink:href="#star" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-gray-700 dark:text-gray-300 italic">
+                                    "{{ testimonial.content }}"
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden SVG for stars -->
+                        <svg class="hidden">
+                            <symbol id="star" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </symbol>
+                        </svg>
+                    </div>
+                </section>
+
+                <!-- Contact Section -->
+                <section id="contact" class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Contact</h2>
+                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                                Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit
+                            </p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <!-- Contact Information -->
+                            <div class="lg:col-span-1">
+                                <div class="grid grid-cols-1 gap-6">
+                                    <div v-for="contact in contactInfo" :key="contact.id"
+                                         class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+                                        <div class="flex items-start">
+                                            <div :class="[
+                                                'h-12 w-12 rounded-lg flex items-center justify-center mr-4',
+                                                getContactColor(contact.type)
+                                            ]">
+                                                <i :class="[contact.icon, 'text-white text-lg']"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-gray-900 dark:text-white mb-2">{{ contact.title }}</h4>
+                                                <p class="text-gray-600 dark:text-gray-400">{{ contact.value }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Contact Form -->
+                            <div class="lg:col-span-2">
+                                <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
+                                    <form @submit.prevent="submitContactForm" class="space-y-6">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Name</label>
+                                                <input v-model="contactForm.name"
+                                                       type="text"
+                                                       required
+                                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
+                                                       placeholder="John Doe">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Email</label>
+                                                <input v-model="contactForm.email"
+                                                       type="email"
+                                                       required
+                                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
+                                                       placeholder="john@example.com">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
+                                            <input v-model="contactForm.subject"
+                                                   type="text"
+                                                   required
+                                                   class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
+                                                   placeholder="Project Inquiry">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message</label>
+                                            <textarea v-model="contactForm.message"
+                                                      rows="5"
+                                                      required
+                                                      class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
+                                                      placeholder="Tell me about your project..."></textarea>
+                                        </div>
+                                        <button type="submit"
+                                                :disabled="contactForm.loading"
+                                                :class="[
+                                                    'w-full px-6 py-3 rounded-lg font-medium transition-colors',
+                                                    contactForm.loading
+                                                        ? 'bg-indigo-400 dark:bg-indigo-500 cursor-not-allowed'
+                                                        : 'bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600'
+                                                ]">
+                                            <span v-if="contactForm.loading" class="flex items-center justify-center">
+                                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Sending...
+                                            </span>
+                                            <span v-else>Send Message</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Footer -->
+                <footer class="bg-gray-900 dark:bg-black pt-12 pb-8">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-8">
+                            <a href="#" class="text-2xl font-bold text-white mb-4 inline-block">
+                                <span class="text-indigo-400">{{ siteSettings?.site_name || 'Portfolio' }}</span>
+                            </a>
+                            <p class="text-gray-400 max-w-2xl mx-auto mb-8">
+                                {{ siteSettings?.site_description || 'Et aut eum quis fuga eos sunt ipsa nihil. Labore corporis magni eligendi fuga maxime saepe commodi placeat.' }}
+                            </p>
+                            
+                            <!-- Social Links -->
+                            <div v-if="siteSettings?.footer_social_links?.length > 0" class="flex justify-center space-x-6 mb-8">
+                                <a v-for="social in siteSettings.footer_social_links" 
+                                   :key="social.platform"
+                                   :href="social.url"
+                                   target="_blank"
+                                   class="h-10 w-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-indigo-600 transition-colors"
+                                   :title="social.platform">
+                                    <i v-if="social.icon" :class="social.icon" class="text-lg text-gray-300"></i>
+                                    <span v-else class="text-sm font-medium text-gray-300">{{ social.platform?.charAt(0) }}</span>
                                 </a>
                             </div>
                         </div>
-                        <div class="p-6">
-                            <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-3">{{ item.title }}</h4>
-                            <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">{{ item.description }}</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ formatDate(item.created_at) }}</span>
+                        
+                        <!-- Copyright -->
+                        <div class="border-t border-gray-800 pt-8">
+                            <div class="flex flex-col md:flex-row justify-between items-center">
+                                <p class="text-gray-400 text-sm mb-4 md:mb-0">
+                                    © {{ new Date().getFullYear() }} {{ siteSettings?.copyright_name || 'Your Name' }}. {{ siteSettings?.copyright_text || 'All Rights Reserved' }}
+                                </p>
+                                <div class="text-gray-400 text-sm">
+                                    <span>{{ siteSettings?.distributed_by_text || 'Designed by' }} </span>
+                                    <a :href="siteSettings?.designer_url || '#'" 
+                                       class="text-indigo-400 hover:text-indigo-300 transition-colors">
+                                        {{ siteSettings?.designer_name || 'Designer' }}
+                                    </a>
+                                    <span class="mx-2">•</span>
+                                    <a :href="siteSettings?.distributor_url || '#'" 
+                                       class="text-indigo-400 hover:text-indigo-300 transition-colors">
+                                        {{ siteSettings?.distributor_name || 'Distributor' }}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Empty State -->
-                <div v-if="filteredPortfolio.length === 0" class="text-center py-12">
-                    <div class="h-16 w-16 mx-auto bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                        <svg class="h-8 w-8 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </footer>
+
+                <!-- Back to Top -->
+                <button v-show="showBackToTop"
+                        @click="scrollToTop"
+                        class="fixed bottom-8 right-8 h-12 w-12 bg-indigo-600 dark:bg-indigo-500 text-white rounded-full shadow-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all hover:shadow-xl flex items-center justify-center z-40">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                    </svg>
+                </button>
+
+                <!-- Success Toast -->
+                <div v-if="contactForm.success" 
+                     class="fixed top-4 right-4 z-50 px-6 py-4 bg-green-500 text-white rounded-lg shadow-lg transform transition-all duration-300 translate-x-0">
+                    <div class="flex items-center">
+                        <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                    </div>
-                    <p class="text-gray-500 dark:text-gray-400">No projects found in this category</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Services Section -->
-        <section id="services" class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">My Services</h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                        Professional services I offer to clients
-                    </p>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div v-for="service in services" :key="service.id"
-                         :class="[
-                             'group bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2',
-                             getServiceColor(service.color).bg
-                         ]">
-                        <div class="mb-6">
-                            <div :class="[
-                                'inline-flex h-16 w-16 items-center justify-center rounded-2xl mb-4',
-                                getServiceColor(service.color).iconBg
-                            ]">
-                                <i :class="[service.icon, getServiceColor(service.color).icon]" class="text-2xl"></i>
-                            </div>
-                        </div>
-                        <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ service.title }}</h4>
-                        <p class="text-gray-600 dark:text-gray-300 mb-6">{{ service.description }}</p>
-                        <div class="flex items-center text-indigo-600 dark:text-indigo-400 font-medium">
-                            <span>Learn more</span>
-                            <svg class="h-5 w-5 ml-2 transform group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                            </svg>
-                        </div>
+                        <span class="font-medium">Message sent successfully!</span>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- Testimonials Section -->
-        <section id="testimonials" class="py-16 md:py-24">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Testimonials</h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                        What clients say about my work
-                    </p>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div v-for="testimonial in testimonials" :key="testimonial.id"
-                         class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
-                        <div class="flex items-center mb-6">
-                            <div v-if="testimonial.image" class="h-12 w-12 rounded-full overflow-hidden mr-4">
-                                <img :src="testimonial.image" 
-                                     :alt="testimonial.name"
-                                     class="w-full h-full object-cover">
-                            </div>
-                            <div v-else 
-                                 class="h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-500 dark:from-indigo-600 dark:to-purple-600 rounded-full flex items-center justify-center mr-4">
-                                <span class="text-white font-bold">{{ testimonial.name?.charAt(0) }}</span>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-900 dark:text-white">{{ testimonial.name }}</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ testimonial.position }}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <div class="flex">
-                                <svg v-for="star in 5" :key="star"
-                                     :class="[
-                                         'h-5 w-5',
-                                         star <= testimonial.rating 
-                                             ? 'text-yellow-400 fill-current' 
-                                             : 'text-gray-300 dark:text-gray-600'
-                                     ]">
-                                    <use xlink:href="#star" />
-                                </svg>
-                            </div>
-                        </div>
-                        
-                        <p class="text-gray-700 dark:text-gray-300 italic">
-                            "{{ testimonial.content }}"
-                        </p>
-                    </div>
-                </div>
-                
-                <!-- Hidden SVG for stars -->
-                <svg class="hidden">
-                    <symbol id="star" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </symbol>
-                </svg>
-            </div>
-        </section>
-
-        <!-- Contact Section -->
-        <section id="contact" class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Get In Touch</h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                        Feel free to contact me for any questions or opportunities
-                    </p>
-                </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Contact Information -->
-                    <div class="lg:col-span-1">
-                        <div class="grid grid-cols-1 gap-6">
-                            <div v-for="contact in contactInfo" :key="contact.id"
-                                 class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-                                <div class="flex items-start">
-                                    <div :class="[
-                                        'h-12 w-12 rounded-lg flex items-center justify-center mr-4',
-                                        getContactColor(contact.type)
-                                    ]">
-                                        <i :class="[contact.icon, 'text-white text-lg']"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-gray-900 dark:text-white mb-2">{{ contact.title }}</h4>
-                                        <p class="text-gray-600 dark:text-gray-400">{{ contact.value }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Contact Form -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
-                            <form @submit.prevent="submitContactForm" class="space-y-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Name</label>
-                                        <input v-model="contactForm.name"
-                                               type="text"
-                                               required
-                                               class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
-                                               placeholder="John Doe">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Email</label>
-                                        <input v-model="contactForm.email"
-                                               type="email"
-                                               required
-                                               class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
-                                               placeholder="john@example.com">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
-                                    <input v-model="contactForm.subject"
-                                           type="text"
-                                           required
-                                           class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
-                                           placeholder="Project Inquiry">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-gray-300 mb-2">Message</label>
-                                    <textarea v-model="contactForm.message"
-                                              rows="5"
-                                              required
-                                              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
-                                              placeholder="Tell me about your project..."></textarea>
-                                </div>
-                                <button type="submit"
-                                        :disabled="contactForm.loading"
-                                        :class="[
-                                            'w-full px-6 py-3 rounded-lg font-medium transition-colors',
-                                            contactForm.loading
-                                                ? 'bg-indigo-400 dark:bg-indigo-500 cursor-not-allowed'
-                                                : 'bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600'
-                                        ]">
-                                    <span v-if="contactForm.loading" class="flex items-center justify-center">
-                                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        Sending...
-                                    </span>
-                                    <span v-else>Send Message</span>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="bg-gray-900 dark:bg-black pt-12 pb-8">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-8">
-                    <a href="#" class="text-2xl font-bold text-white mb-4 inline-block">
-                        <span class="text-indigo-400">{{ siteSettings.site_name || 'Portfolio' }}</span>
-                    </a>
-                    <p class="text-gray-400 max-w-2xl mx-auto mb-8">
-                        {{ siteSettings.site_description || 'A professional portfolio showcasing my work and skills' }}
-                    </p>
-                    
-                    <!-- Social Links -->
-                    <div v-if="siteSettings.footer_social_links && siteSettings.footer_social_links.length > 0" class="flex justify-center space-x-6 mb-8">
-                        <a v-for="social in siteSettings.footer_social_links" 
-                           :key="social.platform"
-                           :href="social.url"
-                           target="_blank"
-                           class="h-10 w-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-indigo-600 transition-colors"
-                           :title="social.platform">
-                            <i v-if="social.icon" :class="social.icon" class="text-lg text-gray-300"></i>
-                            <span v-else class="text-sm font-medium text-gray-300">{{ social.platform?.charAt(0) }}</span>
-                        </a>
-                    </div>
-                    
-                    <!-- Navigation -->
-                    <div class="flex flex-wrap justify-center gap-6 mb-8">
-                        <a v-for="(nav, index) in navigation" 
-                           :key="index"
-                           :href="nav.href"
-                           @click.prevent="scrollToSection(nav.id)"
-                           class="text-gray-400 hover:text-white transition-colors">
-                            {{ nav.name }}
-                        </a>
-                    </div>
-                </div>
-                
-                <!-- Copyright -->
-                <div class="border-t border-gray-800 pt-8">
-                    <div class="flex flex-col md:flex-row justify-between items-center">
-                        <p class="text-gray-400 text-sm mb-4 md:mb-0">
-                            © {{ new Date().getFullYear() }} {{ siteSettings.copyright_name || 'Your Name' }}. {{ siteSettings.copyright_text || 'All rights reserved' }}
-                        </p>
-                        <div class="text-gray-400 text-sm">
-                            <span>{{ siteSettings.distributed_by_text || 'Distributed by' }} </span>
-                            <a :href="siteSettings.designer_url || '#'" 
-                               class="text-indigo-400 hover:text-indigo-300 transition-colors">
-                                {{ siteSettings.designer_name || 'Designer' }}
-                            </a>
-                            <span class="mx-2">•</span>
-                            <a :href="siteSettings.distributor_url || '#'" 
-                               class="text-indigo-400 hover:text-indigo-300 transition-colors">
-                                {{ siteSettings.distributor_name || 'Distributor' }}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </footer>
-
-        <!-- Back to Top -->
-        <button v-show="showBackToTop"
-                @click="scrollToTop"
-                class="fixed bottom-8 right-8 h-12 w-12 bg-indigo-600 dark:bg-indigo-500 text-white rounded-full shadow-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all hover:shadow-xl flex items-center justify-center z-40">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-            </svg>
-        </button>
-
-        <!-- Success Toast -->
-        <div v-if="contactForm.success" 
-             class="fixed top-4 right-4 z-50 px-6 py-4 bg-green-500 text-white rounded-lg shadow-lg transform transition-all duration-300 translate-x-0">
-            <div class="flex items-center">
-                <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                <span class="font-medium">Message sent successfully!</span>
             </div>
         </div>
     </div>
@@ -686,6 +769,9 @@ import axios from 'axios';
 
 // Theme Management
 const isDark = ref(false);
+const isSidebarOpen = ref(false);
+const windowWidth = ref(window.innerWidth);
+
 const toggleTheme = () => {
     isDark.value = !isDark.value;
     if (isDark.value) {
@@ -694,6 +780,17 @@ const toggleTheme = () => {
     } else {
         document.documentElement.classList.remove('dark');
         localStorage.setItem('theme', 'light');
+    }
+};
+
+// Handle window resize
+const handleResize = () => {
+    windowWidth.value = window.innerWidth;
+    // Auto-close sidebar on mobile when switching to desktop
+    if (windowWidth.value >= 768) {
+        isSidebarOpen.value = true;
+    } else {
+        isSidebarOpen.value = false;
     }
 };
 
@@ -709,7 +806,22 @@ const navigation = [
     { name: 'Contact', href: '#contact', id: 'contact' }
 ];
 
-// Reactive Data
+// Helper function to get navigation icons
+const getNavIcon = (navName) => {
+    const icons = {
+        'Home': 'bi bi-house',
+        'About': 'bi bi-person',
+        'Skills': 'bi bi-file-bar-graph',
+        'Resume': 'bi bi-file-earmark-text',
+        'Portfolio': 'bi bi-images',
+        'Services': 'bi bi-hdd-stack',
+        'Testimonials': 'bi bi-chat-square-quote',
+        'Contact': 'bi bi-envelope'
+    };
+    return icons[navName] || 'bi bi-circle';
+};
+
+// Initialize reactive data with empty objects/arrays
 const heroData = ref({});
 const aboutData = ref({});
 const skills = ref([]);
@@ -887,6 +999,10 @@ const scrollToSection = (sectionId) => {
             behavior: 'smooth'
         });
     }
+    // Close sidebar on mobile after clicking
+    if (window.innerWidth < 768) {
+        isSidebarOpen.value = false;
+    }
 };
 
 const scrollToTop = () => {
@@ -922,47 +1038,54 @@ const fetchData = async () => {
     try {
         loading.value = true;
         
-        // Fetch all data in parallel
-        const [
-            heroResponse,
-            aboutResponse,
-            skillsResponse,
-            statsResponse,
-            resumeResponse,
-            portfolioResponse,
-            servicesResponse,
-            testimonialsResponse,
-            contactResponse,
-            settingsResponse
-        ] = await Promise.all([
-            axios.get('/api/hero'),
-            axios.get('/api/about'),
-            axios.get('/api/skills'),
-            axios.get('/api/statistics'),
-            axios.get('/api/resume-sections'),
-            axios.get('/api/portfolio-items'),
-            axios.get('/api/services'),
-            axios.get('/api/testimonials'),
-            axios.get('/api/contact-info'),
-            axios.get('/api/site-settings')
-        ]);
+        // Initialize demo data first to prevent undefined errors
+        setDemoData();
+        
+        // Then try to fetch from API
+        try {
+            const [
+                heroResponse,
+                aboutResponse,
+                skillsResponse,
+                statsResponse,
+                resumeResponse,
+                portfolioResponse,
+                servicesResponse,
+                testimonialsResponse,
+                contactResponse,
+                settingsResponse
+            ] = await Promise.all([
+                axios.get('/api/hero').catch(() => ({ data: { data: heroData.value } })),
+                axios.get('/api/about').catch(() => ({ data: { data: aboutData.value } })),
+                axios.get('/api/skills').catch(() => ({ data: { data: skills.value } })),
+                axios.get('/api/statistics').catch(() => ({ data: { data: statistics.value } })),
+                axios.get('/api/resume-sections').catch(() => ({ data: { data: resumeSections.value } })),
+                axios.get('/api/portfolio-items').catch(() => ({ data: { data: portfolioItems.value } })),
+                axios.get('/api/services').catch(() => ({ data: { data: services.value } })),
+                axios.get('/api/testimonials').catch(() => ({ data: { data: testimonials.value } })),
+                axios.get('/api/contact-info').catch(() => ({ data: { data: contactInfo.value } })),
+                axios.get('/api/site-settings').catch(() => ({ data: { data: siteSettings.value } }))
+            ]);
 
-        // Process responses
-        heroData.value = heroResponse.data?.data || {};
-        aboutData.value = aboutResponse.data?.data || {};
-        skills.value = skillsResponse.data?.data || skillsResponse.data || [];
-        statistics.value = statsResponse.data?.data || statsResponse.data || [];
-        resumeSections.value = resumeResponse.data?.data || resumeResponse.data || [];
-        portfolioItems.value = portfolioResponse.data?.data || portfolioResponse.data || [];
-        services.value = servicesResponse.data?.data || servicesResponse.data || [];
-        testimonials.value = testimonialsResponse.data?.data || testimonialsResponse.data || [];
-        contactInfo.value = contactResponse.data?.data || contactResponse.data || [];
-        siteSettings.value = settingsResponse.data?.data || settingsResponse.data || {};
+            // Update with API data if available
+            if (heroResponse.data?.data) heroData.value = heroResponse.data.data;
+            if (aboutResponse.data?.data) aboutData.value = aboutResponse.data.data;
+            if (skillsResponse.data?.data) skills.value = skillsResponse.data.data;
+            if (statsResponse.data?.data) statistics.value = statsResponse.data.data;
+            if (resumeResponse.data?.data) resumeSections.value = resumeResponse.data.data;
+            if (portfolioResponse.data?.data) portfolioItems.value = portfolioResponse.data.data;
+            if (servicesResponse.data?.data) services.value = servicesResponse.data.data;
+            if (testimonialsResponse.data?.data) testimonials.value = testimonialsResponse.data.data;
+            if (contactResponse.data?.data) contactInfo.value = contactResponse.data.data;
+            if (settingsResponse.data?.data) siteSettings.value = settingsResponse.data.data;
+
+        } catch (apiError) {
+            console.error('API Error:', apiError);
+            // Keep demo data if API fails
+        }
 
     } catch (error) {
-        console.error('Error fetching data:', error);
-        // Set default data for demonstration
-        setDemoData();
+        console.error('Error in fetchData:', error);
     } finally {
         loading.value = false;
     }
@@ -1013,6 +1136,24 @@ const setDemoData = () => {
         { id: 4, icon: 'fas fa-clock', value: 2000, label: 'Hours Worked' }
     ];
 
+    resumeSections.value = [
+        { 
+            id: 1, 
+            type: 'summary', 
+            title: 'Professional Summary',
+            description: 'Innovative and deadline-driven Full Stack Developer with 3+ years of experience designing and developing user-centered web applications.',
+            details: ['San Francisco, CA', '(123) 456-7891', 'john.doe@example.com']
+        },
+        { 
+            id: 2, 
+            type: 'education', 
+            title: 'Master of Computer Science',
+            institution: 'Stanford University',
+            period: '2015 - 2017',
+            description: 'Specialized in Web Technologies and User Experience'
+        }
+    ];
+
     portfolioItems.value = [
         {
             id: 1,
@@ -1026,7 +1167,7 @@ const setDemoData = () => {
             id: 2,
             title: 'Mobile Banking App',
             category: 'mobile',
-            image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w-800&auto=format&fit=crop',
+            image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&auto=format&fit=crop',
             description: 'Secure banking application for iOS and Android',
             created_at: new Date().toISOString()
         }
@@ -1116,6 +1257,14 @@ onMounted(() => {
         document.documentElement.classList.add('dark');
     }
 
+    // Initialize sidebar based on screen size
+    if (window.innerWidth >= 768) {
+        isSidebarOpen.value = true;
+    }
+
+    // Add window resize listener
+    window.addEventListener('resize', handleResize);
+
     // Fetch data
     fetchData();
 
@@ -1128,6 +1277,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll);
+    window.removeEventListener('resize', handleResize);
 });
 </script>
 
@@ -1183,52 +1333,56 @@ html {
     animation: fadeIn 0.6s ease-out;
 }
 
-/* Gradient text */
-.gradient-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+/* Sidebar animations */
+nav {
+    transition: transform 0.3s ease, width 0.3s ease;
 }
 
-/* Glass morphism */
-.glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+nav span, nav h3, nav p {
+    transition: opacity 0.3s ease;
 }
 
-.dark .glass {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .grid-cols-3 {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
+/* Mobile sidebar behavior */
+@media (max-width: 767px) {
+    nav {
+        width: 280px !important;
     }
     
-    .grid-cols-4 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .ml-16, .ml-64, .ml-20, .ml-72 {
+        margin-left: 0 !important;
     }
 }
 
-@media (max-width: 640px) {
-    .grid-cols-4 {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
+/* Desktop sidebar behavior */
+@media (min-width: 768px) {
+    nav {
+        transform: translateX(0) !important;
     }
 }
 
-/* Ensure images are responsive */
-img {
-    max-width: 100%;
-    height: auto;
+/* Ensure sidebar text is visible when expanded */
+nav span {
+    white-space: nowrap;
 }
 
-/* Smooth transitions for dark mode */
-.transition-colors {
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+/* Mobile overlay */
+.overlay {
+    backdrop-filter: blur(2px);
+}
+
+/* Loading spinner */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Smooth transitions */
+.transition-all {
+    transition: all 0.3s ease;
 }
 
 /* Custom focus styles */

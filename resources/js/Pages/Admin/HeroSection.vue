@@ -295,7 +295,6 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import { router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { PhotoIcon as PhotographIcon } from '@heroicons/vue/24/outline';
 
@@ -318,15 +317,27 @@ onMounted(() => {
 
 const fetchHeroData = async () => {
     try {
-        const response = await axios.get('/api/hero');
+        console.log('Fetching hero data from /api/hero...');
+        
+        // Add a timeout to prevent hanging requests
+        const response = await axios.get('/api/hero', {
+            timeout: 10000, // 10 second timeout
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('Hero data response status:', response.status);
         console.log('Hero data response:', response.data);
         
         if (response.data && response.data.data) {
-            // If response has data property (from our updated controller)
             heroData.value = response.data.data;
         } else if (response.data) {
-            // If response is the data directly
             heroData.value = response.data;
+        } else {
+            console.log('No hero data found in response');
+            heroData.value = null;
         }
         
         // Populate form if hero data exists
@@ -338,10 +349,52 @@ const fetchHeroData = async () => {
                 is_active: heroData.value.is_active !== undefined ? heroData.value.is_active : true,
                 background_image: heroData.value.background_image || null
             });
+        } else {
+            console.log('No hero data available, showing empty form');
+            // Reset form to default values
+            Object.assign(form, {
+                name: '',
+                roles: [],
+                social_links: [],
+                is_active: true,
+                background_image: null
+            });
         }
     } catch (error) {
         console.error('Error fetching hero data:', error);
-        console.error('Error response:', error.response?.data);
+        console.error('Error name:', error.name);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error config:', error.config);
+        
+        if (error.code === 'ECONNABORTED') {
+            console.error('Request timed out. The API endpoint might not be responding.');
+            alert('Unable to connect to the server. Please check if the server is running.');
+        } else if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.error('Error response status:', error.response.status);
+            console.error('Error response data:', error.response.data);
+            console.error('Error response headers:', error.response.headers);
+            
+            if (error.response.status === 404) {
+                console.error('API endpoint not found (404). Check your routes.');
+                heroData.value = null;
+            } else if (error.response.status === 500) {
+                console.error('Server error (500). Check your server logs.');
+                alert('Server error occurred. Please check the server logs.');
+            }
+        } else if (error.request) {
+            // The request was made but no response was received
+            console.error('No response received:', error.request);
+            console.error('This might be a CORS issue or network problem.');
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            console.error('Error setting up request:', error.message);
+        }
+        
+        // Set heroData to null to show empty state
+        heroData.value = null;
     }
 };
 
@@ -417,21 +470,20 @@ const saveHero = async () => {
         formData.append('name', form.name.trim());
         formData.append('is_active', form.is_active ? '1' : '0');
         
-        // Append roles as separate fields
-        form.roles.forEach((role, index) => {
-            formData.append(`roles[${index}]`, role);
-        });
+        // Append roles as separate array entries
+        if (form.roles && form.roles.length > 0) {
+            form.roles.forEach((role, index) => {
+                formData.append(`roles[${index}]`, role);
+            });
+        }
         
-        // Append social links properly
+        // Append social links as nested arrays
         if (form.social_links && form.social_links.length > 0) {
             form.social_links.forEach((link, index) => {
                 if (link.platform) formData.append(`social_links[${index}][platform]`, link.platform);
                 if (link.url) formData.append(`social_links[${index}][url]`, link.url);
                 if (link.icon) formData.append(`social_links[${index}][icon]`, link.icon);
             });
-        } else {
-            // Send empty array
-            formData.append('social_links', JSON.stringify([]));
         }
         
         // Use the file if it's a new upload
@@ -440,28 +492,44 @@ const saveHero = async () => {
         } else if (form.background_image && typeof form.background_image === 'string') {
             // If it's an actual URL (not a blob), send it as URL
             if (!form.background_image.startsWith('blob:')) {
-                formData.append('background_image_url', form.background_image);
+                // Check if it's already a storage URL from our server
+                // Don't send storage URLs back to avoid duplication
+                const isStorageUrl = form.background_image.includes('/storage/') || 
+                                   form.background_image.includes('hero/');
+                
+                if (!isStorageUrl) {
+                    // It's a new external URL
+                    formData.append('background_image_url', form.background_image);
+                } else {
+                    console.log('Image is already a storage URL, not sending as background_image_url');
+                }
             }
         }
 
+        // For debugging: Log what's being sent
+        console.log('Sending form data:');
+        console.log('name:', form.name);
+        console.log('roles:', form.roles);
+        console.log('social_links:', form.social_links);
+        console.log('is_active:', form.is_active);
+        console.log('background_image type:', form.background_image_file ? 'file' : (form.background_image ? 'url' : 'none'));
+        
         let url, method;
         if (heroData.value && heroData.value.id) {
             // Update existing
             url = `/api/hero/${heroData.value.id}`;
             method = 'put';
+            
+            // For PUT requests, we need to add _method parameter for Laravel
+            formData.append('_method', 'PUT');
         } else {
             // Create new
             url = '/api/hero';
             method = 'post';
         }
 
-        console.log('Sending form data:');
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-
         const response = await axios({
-            method: method,
+            method: 'post', // Always use POST for FormData with Laravel
             url: url,
             data: formData,
             headers: { 
