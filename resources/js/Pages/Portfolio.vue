@@ -76,38 +76,6 @@
         <div class="transition-all duration-300 ml-0 md:ml-16 lg:ml-20"
              :class="{'md:ml-64 lg:ml-72': isSidebarOpen}">
             
-            <!-- Top Header (for mobile) -->
-            <!-- <header class="sticky top-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
-                <div class="px-4 h-16 flex items-center justify-between">
-                    <div class="flex items-center">
-                        <button @click="isSidebarOpen = true" 
-                                class="p-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 md:hidden">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                            </svg>
-                        </button>
-                        <a href="#" class="ml-4 text-xl font-bold text-gray-900 dark:text-white">
-                            <span class="text-indigo-600 dark:text-indigo-400">{{ siteSettings?.site_name || 'Portfolio' }}</span>
-                        </a>
-                    </div>
-                    
-                    <button @click="toggleTheme" 
-                            class="p-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                        <div class="flex items-center">
-                            <svg v-if="isDark" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
-                            </svg>
-                            <svg v-else class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                            </svg>
-                            <span class="ml-2 text-sm font-medium md:hidden">
-                                {{ isDark ? 'Light' : 'Dark' }}
-                            </span>
-                        </div>
-                    </button>
-                </div>
-            </header> -->
-
             <!-- Floating Theme Toggle for Desktop (Top Right) -->
             <button @click="toggleTheme" 
                     class="fixed top-8 right-8 z-40 hidden md:flex items-center p-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400"
@@ -140,17 +108,19 @@
                                     {{ heroData?.name || 'Your Name' }}
                                 </h1>
                                 <div class="text-2xl md:text-3xl text-gray-600 dark:text-gray-300 mb-8">
-                                    I'm a <span class="text-indigo-600 dark:text-indigo-400 font-semibold">
-                                        {{ heroData?.roles?.[0] || 'Your Profession' }}
+                                    I'm a
+                                    <span class="text-indigo-600 dark:text-indigo-400 font-semibold typewriter-text">
+                                        {{ currentRole }}
+                                        <span class="typewriter-cursor">|</span>
                                     </span>
                                 </div>
-                                <div v-if="heroData?.roles?.length > 1" class="flex flex-wrap gap-3 justify-center lg:justify-start mb-8">
+                                <!-- <div v-if="heroData?.roles?.length > 1" class="flex flex-wrap gap-3 justify-center lg:justify-start mb-8">
                                     <span v-for="(role, index) in heroData.roles.slice(1)" 
                                           :key="index"
                                           class="px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm font-medium">
                                         {{ role }}
                                     </span>
-                                </div>
+                                </div> -->
                                 <div class="flex justify-center lg:justify-start space-x-6">
                                     <a v-for="social in heroData?.social_links || []" 
                                        :key="social.platform"
@@ -181,16 +151,6 @@
                                         </span>
                                     </div>
                                 </div>
-                                
-                                <!-- Floating Elements -->
-                                <!-- <div class="absolute -top-4 -right-4 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-4 shadow-xl">
-                                    <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">5+</div>
-                                    <div class="text-sm text-yellow-800 dark:text-yellow-300">Years Exp.</div>
-                                </div>
-                                <div class="absolute -bottom-4 -left-4 bg-green-100 dark:bg-green-900/30 rounded-lg p-4 shadow-xl">
-                                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">50+</div>
-                                    <div class="text-sm text-green-800 dark:text-green-300">Projects</div>
-                                </div> -->
                             </div>
                         </div>
                     </div>
@@ -250,9 +210,9 @@
                                 <div v-if="aboutData?.personal_details" class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                                     <div v-for="(side, sideName) in aboutData.personal_details" :key="sideName">
                                         <div v-for="detail in side" :key="detail.label" class="mb-4">
-                                            <div class="flex items-center">
-                                                <span class="font-medium text-gray-900 dark:text-white min-w-28">{{ detail.label }}:</span>
-                                                <span class="text-gray-600 dark:text-gray-400">{{ detail.value }}</span>
+                                            <div class="grid grid-cols-3 gap-4 mb-4">
+                                                <span class="font-medium text-gray-900 dark:text-white col-span-1">{{ detail.label }}:</span>
+                                                <span class="text-gray-600 dark:text-gray-400 col-span-2 break-words">{{ detail.value }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -276,15 +236,28 @@
                 </section>
 
                 <!-- Stats Section -->
-                <section id="stats" class="py-16 md:py-24 bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-600 dark:to-purple-600">
+                <section id="stats" class="py-12 md:py-5 bg-gray-50 dark:bg-gray-800/50">
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Statistics</h2>
+                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                                {{ 'My Works So Far' }}
+                            </p>
+                        </div>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                             <div v-for="stat in statistics" :key="stat.id" class="text-center">
-                                <div class="mb-4">
-                                    <i :class="stat.icon" class="text-4xl text-white"></i>
+                                <div class="mb-4 flex justify-center">
+                                    <div class="relative">
+                                        <!-- Blue circle background -->
+                                        <div class="absolute inset-0 bg-blue-500 rounded-full transform scale-110"></div>
+                                        <!-- Icon container with blue circle -->
+                                        <div class="relative w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <i :class="stat.icon" class="text-2xl text-white"></i>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="text-4xl md:text-5xl font-bold text-white mb-2">{{ formatNumber(stat.value) }}</div>
-                                <div class="text-lg text-white/90">{{ stat.label }}</div>
+                                <div class="text-2xl md:text-2xl font-bold text-black mb-2">{{ formatNumber(stat.value) }}</div>
+                                <div class="text-lg text-black/90">{{ stat.label }}</div>
                             </div>
                         </div>
                     </div>
@@ -295,9 +268,6 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Skills</h2>
-                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                                Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit
-                            </p>
                         </div>
                         
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -339,9 +309,9 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Resume</h2>
-                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
                                 Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem.
-                            </p>
+                            </p> -->
                         </div>
                         
                         <!-- Summary -->
@@ -432,9 +402,9 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Portfolio</h2>
-                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
                                 Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem.
-                            </p>
+                            </p> -->
                         </div>
                         
                         <!-- Filter Buttons -->
@@ -507,9 +477,9 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Services</h2>
-                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
                                 Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem.
-                            </p>
+                            </p> -->
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -544,9 +514,9 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Testimonials</h2>
-                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
                                 Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit
-                            </p>
+                            </p> -->
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -602,9 +572,9 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Contact</h2>
-                            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
                                 Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit
-                            </p>
+                            </p> -->
                         </div>
                         
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -744,7 +714,7 @@
                         @click="scrollToTop"
                         class="fixed bottom-8 right-8 h-12 w-12 bg-indigo-600 dark:bg-indigo-500 text-white rounded-full shadow-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all hover:shadow-xl flex items-center justify-center z-40">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m7-7v18"></path>
                     </svg>
                 </button>
 
@@ -764,7 +734,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
 import axios from 'axios';
 
 // Theme Management
@@ -781,6 +751,74 @@ const toggleTheme = () => {
         document.documentElement.classList.remove('dark');
         localStorage.setItem('theme', 'light');
     }
+};
+
+// Typewriter Variables
+const currentRole = ref('');
+const currentRoleIndex = ref(0);
+const isDeleting = ref(false);
+const isWaiting = ref(false);
+const typingSpeed = ref(100);
+const deletingSpeed = ref(50);
+const waitTime = ref(1500);
+let typewriterTimer = null;
+
+// Typewriter Function
+const typeWriter = () => {
+    if (!heroData.value?.roles || heroData.value.roles.length === 0) {
+        currentRole.value = 'Your Profession';
+        return;
+    }
+
+    const roles = heroData.value.roles;
+    const fullText = roles[currentRoleIndex.value];
+    
+    if (isDeleting.value) {
+        // Deleting text
+        currentRole.value = fullText.substring(0, currentRole.value.length - 1);
+        typingSpeed.value = deletingSpeed.value;
+        
+        if (currentRole.value === '') {
+            isDeleting.value = false;
+            currentRoleIndex.value = (currentRoleIndex.value + 1) % roles.length;
+            // Add a small pause before typing next role
+            setTimeout(() => {
+                typeWriter();
+            }, 500);
+            return;
+        }
+    } else {
+        // Typing text
+        currentRole.value = fullText.substring(0, currentRole.value.length + 1);
+        typingSpeed.value = 100;
+        
+        if (currentRole.value === fullText) {
+            // Text completed, wait then start deleting
+            isWaiting.value = true;
+            setTimeout(() => {
+                isWaiting.value = false;
+                isDeleting.value = true;
+                typeWriter();
+            }, waitTime.value);
+            return;
+        }
+    }
+    
+    // Continue typing/deleting
+    typewriterTimer = setTimeout(typeWriter, typingSpeed.value);
+};
+
+// Start typewriter effect
+const startTypewriter = () => {
+    if (typewriterTimer) {
+        clearTimeout(typewriterTimer);
+    }
+    currentRole.value = '';
+    currentRoleIndex.value = 0;
+    isDeleting.value = false;
+    isWaiting.value = false;
+    typingSpeed.value = 100;
+    typeWriter();
 };
 
 // Handle window resize
@@ -1095,7 +1133,7 @@ const fetchData = async () => {
 const setDemoData = () => {
     heroData.value = {
         name: 'John Doe',
-        roles: ['Full Stack Developer', 'UI/UX Designer'],
+        roles: ['Full Stack Developer', 'UI/UX Designer', 'Freelancer', 'Photographer'],
         social_links: [
             { platform: 'GitHub', url: 'https://github.com', icon: 'fab fa-github' },
             { platform: 'LinkedIn', url: 'https://linkedin.com', icon: 'fab fa-linkedin' },
@@ -1273,12 +1311,27 @@ onMounted(() => {
 
     // Initial scroll position check
     handleScroll();
+    
+    // Start typewriter effect after a short delay
+    setTimeout(() => {
+        startTypewriter();
+    }, 1000);
 });
 
 onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll);
     window.removeEventListener('resize', handleResize);
+    if (typewriterTimer) {
+        clearTimeout(typewriterTimer);
+    }
 });
+
+// Watch for heroData changes to restart typewriter
+watch(() => heroData.value?.roles, (newRoles) => {
+    if (newRoles && newRoles.length > 0) {
+        startTypewriter();
+    }
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -1315,6 +1368,31 @@ html {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Typewriter Styles */
+.typewriter-text {
+    display: inline-block;
+    position: relative;
+    padding-right: 8px;
+    min-height: 1.2em;
+}
+
+.typewriter-cursor {
+    display: inline-block;
+    color: currentColor;
+    animation: blink 1s infinite;
+    font-weight: normal;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
 }
 
 /* Animation classes */
@@ -1393,5 +1471,26 @@ nav span {
 
 .dark :focus {
     outline-color: #6366f1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .text-4xl {
+        font-size: 2.25rem;
+    }
+    
+    .text-3xl {
+        font-size: 1.875rem;
+    }
+    
+    .text-2xl {
+        font-size: 1.5rem;
+    }
+}
+
+/* Ensure images don't overflow */
+img {
+    max-width: 100%;
+    height: auto;
 }
 </style>

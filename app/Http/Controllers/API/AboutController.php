@@ -54,6 +54,11 @@ class AboutController extends Controller
         }
 
         $data = $request->only(['title', 'description', 'bio', 'extended_bio', 'is_active']);
+        
+        // Convert is_active to boolean if it's a string
+        if (isset($data['is_active']) && is_string($data['is_active'])) {
+            $data['is_active'] = $data['is_active'] === '1' || $data['is_active'] === 'true';
+        }
 
         // Handle image upload
         if ($request->hasFile('profile_image')) {
@@ -113,6 +118,11 @@ class AboutController extends Controller
         }
 
         $data = $request->only(['title', 'description', 'bio', 'extended_bio', 'is_active']);
+        
+        // Convert is_active to boolean if it's a string
+        if (isset($data['is_active']) && is_string($data['is_active'])) {
+            $data['is_active'] = $data['is_active'] === '1' || $data['is_active'] === 'true';
+        }
 
         // Handle image upload
         if ($request->hasFile('profile_image')) {
@@ -151,4 +161,4 @@ class AboutController extends Controller
             'message' => 'About section deleted successfully'
         ]);
     }
-}
+}   

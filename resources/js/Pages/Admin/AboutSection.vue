@@ -389,7 +389,7 @@ const saveAbout = async () => {
         formData.append('bio', form.bio.trim());
         formData.append('personal_details', JSON.stringify(form.personal_details));
         formData.append('extended_bio', form.extended_bio.trim());
-        formData.append('is_active', form.is_active ? '1' : '0'); // Convert to string
+        formData.append('is_active', form.is_active ? 1 : 0); // Send as number
         
         // Check if it's a File object before appending
         if (form.profile_image && typeof form.profile_image === 'object' && 
@@ -398,35 +398,33 @@ const saveAbout = async () => {
         }
 
         let response;
-        let method = 'post';
         let url = '/api/about';
         
         if (aboutData.value && aboutData.value.id) {
             // Update existing - use PUT method
-            method = 'put';
             url = `/api/about/${aboutData.value.id}`;
-            
-            // Append _method for Laravel if needed
+            // Use POST with _method=PUT for Laravel
             formData.append('_method', 'PUT');
+            response = await axios.post(url, formData, {
+                headers: { 
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+        } else {
+            // Create new
+            response = await axios.post(url, formData, {
+                headers: { 
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
         }
-
-        response = await axios({
-            method: method,
-            url: url,
-            data: formData,
-            headers: { 
-                'Content-Type': 'multipart/form-data',
-                // Let Inertia.js handle the CSRF token automatically
-            }
-        });
 
         if (response.status === 200 || response.status === 201) {
             aboutData.value = response.data;
             showForm.value = false;
             
-            // Show success message using Inertia's flash
-            if (router.page && router.page.props && router.page.props.flash) {
-                // Use Inertia's built-in flash message system
+            // Show success message
+            if (window.dispatchEvent) {
                 window.dispatchEvent(new CustomEvent('inertia-flash', {
                     detail: { 
                         type: 'success', 

@@ -243,7 +243,7 @@
             <div v-if="!initialLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div 
                     v-for="item in filteredPortfolioItems" 
-                    :key="item.id"
+                    :key="`portfolio-${item.id}`"
                     class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 group"
                 >
                     <div class="relative overflow-hidden">
@@ -252,16 +252,16 @@
                             :alt="item.title" 
                             class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                        <div class="absolute top-2 right-2 flex space-x-1">
+                        <div class="absolute top-2 right-2 flex space-x-1 z-10">
                             <button 
-                                @click="editPortfolioItem(item)"
+                                @click="handleEditClick(item, $event)"
                                 class="p-2 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                 title="Edit"
                             >
                                 <PencilIcon class="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             </button>
                             <button 
-                                @click="deletePortfolioItem(item.id)"
+                                @click="handleDeleteClick(item.id, $event)"
                                 class="p-2 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
                                 title="Delete"
                             >
@@ -504,29 +504,62 @@ const handleImageUpload = (event) => {
     }
 };
 
+// Fixed edit function with proper event handling
 const editPortfolioItem = (item) => {
+    console.log('Editing item:', item);
+    
+    // Reset form first
+    resetForm();
+    
+    // Set editing ID
     editingId.value = item.id;
+    
+    // Populate form with item data
     Object.assign(form, {
-        title: item.title,
-        category: item.category,
-        image: item.image,
-        description: item.description,
-        details_url: item.details_url,
-        order: item.order,
-        is_active: item.is_active
+        title: item.title || '',
+        category: item.category || 'app',
+        image: item.image || null,
+        description: item.description || '',
+        details_url: item.details_url || '',
+        order: item.order || 0,
+        is_active: item.is_active !== undefined ? item.is_active : true
     });
+    
+    // Show form
     showForm.value = true;
     
-    // Scroll to form
+    // Scroll to form with a small delay to ensure form is rendered
     setTimeout(() => {
-        const formElement = document.querySelector('.bg-white\\ dark\\:bg-gray-800, .dark\\:bg-gray-800');
+        const formElement = document.querySelector('form');
         if (formElement) {
             formElement.scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'start' 
             });
         }
-    }, 100);
+    }, 150);
+};
+
+// Wrapper function to handle edit click with proper event handling
+const handleEditClick = (item, event) => {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+    }
+    
+    editPortfolioItem(item);
+};
+
+// Wrapper function to handle delete click with proper event handling
+const handleDeleteClick = (id, event) => {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+    }
+    
+    deletePortfolioItem(id);
 };
 
 const cancelEdit = () => {
@@ -548,41 +581,70 @@ const resetForm = () => {
 };
 
 const savePortfolioItem = async () => {
+    console.log('Saving portfolio item. Editing ID:', editingId.value);
+    
     loading.value = true;
     
     try {
-        const formData = new FormData();
-        formData.append('title', form.title.trim());
-        formData.append('category', form.category);
-        formData.append('description', form.description.trim());
-        
-        if (form.details_url) {
-            formData.append('details_url', form.details_url.trim());
-        }
-        
-        formData.append('order', form.order);
-        
-        // Convert checkbox value to proper boolean string
-        formData.append('is_active', form.is_active ? '1' : '0');
-        
-        if (isFile(form.image)) {
-            formData.append('image', form.image);
-        } else if (form.image && typeof form.image === 'string') {
-            // If it's a string (URL), we need to send it differently
-            formData.append('image_url', form.image);
-        }
+        // Create a regular object instead of FormData for simpler boolean handling
+        const data = {
+            title: form.title.trim(),
+            category: form.category,
+            description: form.description.trim(),
+            details_url: form.details_url ? form.details_url.trim() : '',
+            order: form.order,
+            is_active: form.is_active, // Send as actual boolean
+        };
 
         let response;
         if (editingId.value) {
-            // Update existing
-            response = await axios.put(`/api/portfolio-items/${editingId.value}`, formData, {
-                headers: { 
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                }
-            });
+            // For updates, handle image separately
+            if (isFile(form.image)) {
+                // If new image, use FormData
+                const formData = new FormData();
+                formData.append('_method', 'PUT');
+                formData.append('title', data.title);
+                formData.append('category', data.category);
+                formData.append('description', data.description);
+                formData.append('details_url', data.details_url);
+                formData.append('order', data.order);
+                formData.append('is_active', data.is_active ? '1' : '0');
+                formData.append('image', form.image);
+                
+                response = await axios.post(`/api/portfolio-items/${editingId.value}`, formData, {
+                    headers: { 
+                        'Content-Type': 'multipart/form-data',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    }
+                });
+            } else {
+                // No new image, use regular JSON
+                data.is_active = data.is_active ? 1 : 0; // Convert to 1/0 for Laravel
+                response = await axios.put(`/api/portfolio-items/${editingId.value}`, data, {
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    }
+                });
+            }
         } else {
-            // Create new
+            // For create, always use FormData because image is required
+            const formData = new FormData();
+            formData.append('title', data.title);
+            formData.append('category', data.category);
+            formData.append('description', data.description);
+            formData.append('details_url', data.details_url);
+            formData.append('order', data.order);
+            formData.append('is_active', data.is_active ? '1' : '0');
+            
+            if (isFile(form.image)) {
+                formData.append('image', form.image);
+            } else {
+                alert('Please select an image for the project');
+                loading.value = false;
+                return;
+            }
+            
             response = await axios.post('/api/portfolio-items', formData, {
                 headers: { 
                     'Content-Type': 'multipart/form-data',
@@ -604,6 +666,7 @@ const savePortfolioItem = async () => {
         }
     } catch (error) {
         console.error('Error saving portfolio item:', error);
+        console.error('Error response:', error.response);
         
         // Show error message
         let errorMessage = 'Failed to save portfolio item. Please try again.';
@@ -760,21 +823,9 @@ button:focus {
     background-image: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
 }
 
-/* Category badge animation */
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
-    }
-}
-
-.rounded-full {
-    animation: pulse 2s infinite;
+/* Ensure buttons are above other elements */
+.z-10 {
+    z-index: 10;
 }
 
 /* File input styling */
