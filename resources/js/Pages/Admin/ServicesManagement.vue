@@ -216,30 +216,34 @@
                 <div 
                     v-for="service in sortedServices" 
                     :key="service.id"
-                    class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 group"
+                    class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 group relative"
                 >
+                    <!-- Action Buttons Container -->
+                    <div class="absolute top-4 right-4 z-20 flex space-x-2">
+                        <!-- Edit Button -->
+                        <button 
+                            @click="handleEdit(service)"
+                            class="p-2 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 z-30"
+                            title="Edit service"
+                        >
+                            <PencilIcon class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </button>
+                        
+                        <!-- Delete Button -->
+                        <button 
+                            @click="handleDelete(service.id)"
+                            class="p-2 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 z-30"
+                            title="Delete service"
+                        >
+                            <TrashIcon class="h-4 w-4 text-red-600 dark:text-red-400" />
+                        </button>
+                    </div>
+                    
                     <!-- Service Header -->
                     <div :class="[
                         'relative overflow-hidden p-8',
                         getColorClasses(service.color).bg
                     ]">
-                        <div class="absolute top-4 right-4 flex space-x-1">
-                            <button 
-                                @click="editService(service)"
-                                class="p-2 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                title="Edit service"
-                            >
-                                <PencilIcon class="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            </button>
-                            <button 
-                                @click="deleteService(service.id)"
-                                class="p-2 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-                                title="Delete service"
-                            >
-                                <TrashIcon class="h-4 w-4 text-red-600 dark:text-red-400" />
-                            </button>
-                        </div>
-                        
                         <div class="relative z-10">
                             <div class="flex items-start justify-between">
                                 <div>
@@ -365,6 +369,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { router } from '@inertiajs/vue3';
+import axios from 'axios';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { PencilIcon, TrashIcon, CogIcon } from '@heroicons/vue/24/outline';
 
@@ -492,6 +497,8 @@ const fetchServices = async () => {
         initialLoading.value = true;
         const response = await axios.get('/api/services');
         
+        console.log('API Response:', response.data); // Debug log
+        
         // Handle different response formats
         let servicesData = [];
         
@@ -518,7 +525,7 @@ const fetchServices = async () => {
         
         services.value = servicesData;
         
-        console.log('Fetched services:', services.value);
+        console.log('Processed services:', services.value); // Debug log
         
     } catch (error) {
         console.error('Error fetching services:', error);
@@ -605,29 +612,79 @@ const getColorCount = (color) => {
     return services.value.filter(service => service && service.color === color).length;
 };
 
-const editService = (service) => {
+// Fixed edit service function with better error handling
+const handleEdit = (service) => {
+    console.log('Edit button clicked for service:', service);
+    
+    if (!service || !service.id) {
+        console.error('Invalid service object:', service);
+        showNotification('Cannot edit: Invalid service data', 'error');
+        return;
+    }
+    
     editingId.value = service.id;
+    
+    // Safely assign form values with defaults
     Object.assign(form, {
-        title: service.title,
-        icon: service.icon,
-        color: service.color,
-        description: service.description,
-        svg_path: service.svg_path,
-        order: service.order,
-        is_active: service.is_active
+        title: service.title || '',
+        icon: service.icon || '',
+        color: service.color || 'cyan',
+        description: service.description || '',
+        svg_path: service.svg_path || '',
+        order: service.order || 0,
+        is_active: service.is_active !== undefined ? service.is_active : true
     });
+    
     showForm.value = true;
     
-    // Scroll to form
+    // Scroll to form with better error handling
     setTimeout(() => {
-        const formElement = document.querySelector('.bg-white\\ dark\\:bg-gray-800, .dark\\:bg-gray-800');
+        const formElement = document.querySelector('.bg-white\\.dark\\:bg-gray-800, .dark\\:bg-gray-800');
         if (formElement) {
             formElement.scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'start' 
             });
         }
-    }, 100);
+    }, 150);
+    
+    // Show success message
+    showNotification(`Editing "${service.title}"`, 'info');
+};
+
+// Fixed delete service function
+const handleDelete = async (id) => {
+    console.log('Delete button clicked for ID:', id);
+    
+    if (!id) {
+        console.error('Invalid service ID:', id);
+        showNotification('Cannot delete: Invalid service ID', 'error');
+        return;
+    }
+    
+    const serviceToDelete = services.value.find(s => s.id === id);
+    const serviceName = serviceToDelete ? serviceToDelete.title : 'Service';
+    
+    if (!confirm(`Are you sure you want to delete "${serviceName}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        await axios.delete(`/api/services/${id}`);
+        await fetchServices();
+        
+        showNotification(`"${serviceName}" deleted successfully!`, 'success');
+        
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        
+        const errorMessage = error.response?.data?.message || 
+                           (error.response?.data?.errors ? 
+                            Object.values(error.response.data.errors).flat().join(', ') : 
+                            'Failed to delete service. Please try again.');
+        
+        showNotification(errorMessage, 'error');
+    }
 };
 
 const cancelEdit = () => {
@@ -663,7 +720,6 @@ const saveService = async () => {
             await fetchServices();
             cancelEdit();
             
-            // Show success notification
             showNotification(
                 editingId.value 
                     ? 'Service updated successfully!' 
@@ -674,7 +730,6 @@ const saveService = async () => {
     } catch (error) {
         console.error('Error saving service:', error);
         
-        // Show error message
         const errorMessage = error.response?.data?.message || 
                            (error.response?.data?.errors ? 
                             Object.values(error.response.data.errors).flat().join(', ') : 
@@ -683,25 +738,6 @@ const saveService = async () => {
         showNotification(errorMessage, 'error');
     } finally {
         loading.value = false;
-    }
-};
-
-const deleteService = async (id) => {
-    if (!confirm('Are you sure you want to delete this service? This action cannot be undone.')) return;
-    
-    try {
-        await axios.delete(`/api/services/${id}`);
-        await fetchServices();
-        
-        // Show success notification
-        showNotification('Service deleted successfully!', 'success');
-        
-    } catch (error) {
-        console.error('Error deleting service:', error);
-        
-        // Show error message
-        const errorMessage = error.response?.data?.message || 'Failed to delete service. Please try again.';
-        showNotification(errorMessage, 'error');
     }
 };
 
@@ -722,7 +758,9 @@ const showNotification = (message, type = 'info') => {
             ? 'bg-green-500 text-white' 
             : type === 'error' 
             ? 'bg-red-500 text-white' 
-            : 'bg-blue-500 text-white'
+            : type === 'info'
+            ? 'bg-blue-500 text-white'
+            : 'bg-gray-500 text-white'
     }`;
     
     // Add icon based on type
@@ -750,6 +788,20 @@ const showNotification = (message, type = 'info') => {
             }
         }, 300);
     }, 5000);
+};
+
+// Debug function - can be removed after testing
+const testClick = () => {
+    console.log('Test click working');
+    handleEdit({
+        id: 999,
+        title: 'Test Service',
+        icon: 'bi bi-code',
+        color: 'indigo',
+        description: 'This is a test service for debugging',
+        order: 1,
+        is_active: true
+    });
 };
 </script>
 
@@ -882,10 +934,14 @@ svg path {
 
 /* Icon font sizing */
 i[class^="bi-"],
+i[class*=" bi-"],
 i[class^="fas-"],
-i[class^="fab-"] {
+i[class*=" fas-"],
+i[class^="fab-"],
+i[class*=" fab-"] {
     font-size: 2.5rem;
     line-height: 1;
+    display: inline-block;
 }
 
 /* Notification styles */
@@ -902,5 +958,41 @@ i[class^="fab-"] {
         transform: translateX(0);
         opacity: 1;
     }
+}
+
+/* Action button styling - FIXED */
+.absolute.top-4.right-4 {
+    position: absolute !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    z-index: 30 !important;
+}
+
+.absolute.top-4.right-4 button {
+    position: relative !important;
+    z-index: 40 !important;
+    pointer-events: auto !important;
+}
+
+/* Ensure action buttons are always clickable */
+.z-30 {
+    z-index: 30 !important;
+}
+
+/* Card interaction fixes */
+.bg-white.dark\:bg-gray-800 {
+    position: relative;
+}
+
+/* Prevent text selection on buttons */
+button {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Hover effects for action buttons */
+.absolute.top-4.right-4 button:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
 }
 </style>

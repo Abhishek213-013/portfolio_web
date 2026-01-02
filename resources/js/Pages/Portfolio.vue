@@ -35,11 +35,8 @@
                 <div class="text-center overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100"
                      :class="{'opacity-100': isSidebarOpen}">
                     <h3 class="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                        {{ heroData?.name?.split(' ')[0] || 'Your' }}
+                        {{ heroData?.name || 'Your' }}
                     </h3>
-                    <p class="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                        {{ heroData?.roles?.[0]?.split(' ')[0] || 'Dev' }}
-                    </p>
                 </div>
             </div>
 
@@ -99,11 +96,11 @@
             <!-- Content -->
             <div v-else>
                 <!-- Hero Section -->
-                <section id="home" class="pt-16 md:pt-24 pb-16 md:pb-24 relative overflow-hidden">
+                <section id="home" class="pt-16 md:pt-24 pb-16 md:pb-24 relative overflow-hidden mb-0">
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                            <!-- Left Content -->
-                            <div class="text-center lg:text-left">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                            <!-- Left Content - Name and Role -->
+                            <div class="flex flex-col justify-center text-left">
                                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
                                     {{ heroData?.name || 'Your Name' }}
                                 </h1>
@@ -114,14 +111,7 @@
                                         <span class="typewriter-cursor">|</span>
                                     </span>
                                 </div>
-                                <!-- <div v-if="heroData?.roles?.length > 1" class="flex flex-wrap gap-3 justify-center lg:justify-start mb-8">
-                                    <span v-for="(role, index) in heroData.roles.slice(1)" 
-                                          :key="index"
-                                          class="px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm font-medium">
-                                        {{ role }}
-                                    </span>
-                                </div> -->
-                                <div class="flex justify-center lg:justify-start space-x-6">
+                                <div class="flex space-x-6">
                                     <a v-for="social in heroData?.social_links || []" 
                                        :key="social.platform"
                                        :href="social.url"
@@ -134,22 +124,37 @@
                                 </div>
                             </div>
                             
-                            <!-- Right Image -->
-                            <div class="relative">
-                                <div class="relative w-64 h-64 md:w-80 md:h-80 mx-auto">
-                                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 dark:from-indigo-500 dark:to-purple-500 rounded-full transform rotate-6"></div>
+                            <!-- Right Image with Lighting Effect -->
+                            <div class="relative flex justify-center lg:justify-end items-center">
+                                <div class="relative w-64 h-64 md:w-80 md:h-80">
+                                    <!-- Outer glow effect -->
+                                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 dark:from-indigo-500 dark:via-purple-500 dark:to-pink-500 rounded-full transform rotate-6 blur-xl opacity-70 animate-pulse"></div>
+                                    
+                                    <!-- Middle glow layer -->
+                                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 rounded-full transform rotate-3 blur-md opacity-50"></div>
+                                    
+                                    <!-- Image container with metallic border -->
                                     <div v-if="heroData?.background_image" 
-                                         class="relative w-full h-full rounded-full overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl">
+                                         class="relative w-full h-full rounded-full overflow-hidden border-4 border-white/80 dark:border-gray-800/80 shadow-2xl backdrop-blur-sm">
+                                        <!-- Inner glow border -->
+                                        <div class="absolute inset-0 rounded-full border-2 border-white/50 dark:border-white/30 shadow-inner"></div>
                                         <img :src="heroData.background_image" 
                                              alt="Profile"
-                                             class="w-full h-full object-cover">
+                                             class="w-full h-full object-cover relative z-10">
                                     </div>
                                     <div v-else 
-                                         class="relative w-full h-full rounded-full overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                                        <span class="text-6xl font-bold text-gray-600 dark:text-gray-400">
+                                         class="relative w-full h-full rounded-full overflow-hidden border-4 border-white/80 dark:border-gray-800/80 shadow-2xl backdrop-blur-sm bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                                        <!-- Inner glow border -->
+                                        <div class="absolute inset-0 rounded-full border-2 border-white/50 dark:border-white/30 shadow-inner"></div>
+                                        <span class="text-6xl font-bold text-gray-600 dark:text-gray-400 relative z-10">
                                             {{ heroData?.name?.charAt(0) || 'Y' }}
                                         </span>
                                     </div>
+                                    
+                                    <!-- Floating particles/light spots -->
+                                    <div class="absolute -top-2 -right-2 h-6 w-6 bg-white rounded-full blur-sm opacity-60 animate-bounce"></div>
+                                    <div class="absolute -bottom-2 -left-2 h-4 w-4 bg-blue-300 rounded-full blur-sm opacity-60 animate-bounce delay-300"></div>
+                                    <div class="absolute top-1/2 -right-3 h-3 w-3 bg-purple-300 rounded-full blur-sm opacity-60 animate-ping"></div>
                                 </div>
                             </div>
                         </div>
@@ -168,7 +173,7 @@
                 </section>
 
                 <!-- About Section -->
-                <section id="about" class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800/50">
+                <section id="about" class="py-16 md:py-24">
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">About Me</h2>
@@ -177,10 +182,10 @@
                             </p>
                         </div>
                         
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
                             <!-- Profile Image -->
-                            <div class="relative">
-                                <div class="relative w-64 h-64 md:w-96 md:h-96 mx-auto">
+                            <div class="relative flex justify-center lg:justify-end items-center">
+                                <div class="relative w-64 h-64 md:w-96 md:h-96">
                                     <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 dark:from-blue-500 dark:to-cyan-500 rounded-lg transform rotate-3"></div>
                                     <div v-if="aboutData?.profile_image" 
                                          class="relative w-full h-full rounded-lg overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl">
@@ -198,7 +203,7 @@
                             </div>
                             
                             <!-- About Content -->
-                            <div>
+                            <div class="flex flex-col justify-center text-left">
                                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ aboutData?.title || 'About Me' }}</h3>
                                 <p class="text-lg text-gray-600 dark:text-gray-300 mb-6 italic">
                                     "{{ aboutData?.bio || 'Your professional bio or tagline' }}"
@@ -236,7 +241,7 @@
                 </section>
 
                 <!-- Stats Section -->
-                <section id="stats" class="py-12 md:py-5 bg-gray-50 dark:bg-gray-800/50">
+                <section id="stats" class="py-12 md:py-5 bg-gray-50 dark:bg-gray-800/50" ref="statsSection">
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Statistics</h2>
@@ -256,8 +261,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-2xl md:text-2xl font-bold text-black mb-2">{{ formatNumber(stat.value) }}</div>
-                                <div class="text-lg text-black/90">{{ stat.label }}</div>
+                                <div class="text-2xl md:text-2xl font-bold text-black dark:text-white mb-2">
+                                    {{ animatedStats[stat.id]?.toLocaleString('en-US') || 0 }}
+                                </div>
+                                <div class="text-lg text-black/90 dark:text-white">{{ stat.label }}</div>
                             </div>
                         </div>
                     </div>
@@ -309,9 +316,6 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Resume</h2>
-                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                                Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem.
-                            </p> -->
                         </div>
                         
                         <!-- Summary -->
@@ -402,9 +406,6 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Portfolio</h2>
-                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                                Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem.
-                            </p> -->
                         </div>
                         
                         <!-- Filter Buttons -->
@@ -477,9 +478,6 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Services</h2>
-                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                                Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem.
-                            </p> -->
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -498,10 +496,22 @@
                                 </div>
                                 <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ service.title }}</h4>
                                 <p class="text-gray-600 dark:text-gray-300 mb-6">{{ service.description }}</p>
-                                <div class="flex items-center text-indigo-600 dark:text-indigo-400 font-medium">
-                                    <span>Learn more</span>
-                                    <svg class="h-5 w-5 ml-2 transform group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                
+                                <!-- Learn More Link with Mailto -->
+                                <div class="flex items-center text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer group/link"
+                                     @click="sendServiceInquiry(service.title)"
+                                     @keyup.enter="sendServiceInquiry(service.title)"
+                                     tabindex="0"
+                                     role="button">
+                                    <span class="group-hover/link:underline">Learn more</span>
+                                    <svg class="h-5 w-5 ml-2 transform group-hover/link:translate-x-2 transition-transform" 
+                                         fill="none" 
+                                         stroke="currentColor" 
+                                         viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" 
+                                              stroke-linejoin="round" 
+                                              stroke-width="2" 
+                                              d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                                     </svg>
                                 </div>
                             </div>
@@ -514,9 +524,6 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Testimonials</h2>
-                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                                Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit
-                            </p> -->
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -572,9 +579,6 @@
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="text-center mb-16">
                             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Contact</h2>
-                            <!-- <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                                Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit
-                            </p> -->
                         </div>
                         
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -582,17 +586,30 @@
                             <div class="lg:col-span-1">
                                 <div class="grid grid-cols-1 gap-6">
                                     <div v-for="contact in contactInfo" :key="contact.id"
-                                         class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+                                         class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                         <div class="flex items-start">
                                             <div :class="[
-                                                'h-12 w-12 rounded-lg flex items-center justify-center mr-4',
+                                                'h-12 w-12 rounded-lg flex items-center justify-center mr-4 flex-shrink-0',
                                                 getContactColor(contact.type)
                                             ]">
                                                 <i :class="[contact.icon, 'text-white text-lg']"></i>
                                             </div>
-                                            <div>
-                                                <h4 class="font-bold text-gray-900 dark:text-white mb-2">{{ contact.title }}</h4>
-                                                <p class="text-gray-600 dark:text-gray-400">{{ contact.value }}</p>
+                                            <div class="min-w-0 flex-1 overflow-hidden">
+                                                <h4 class="font-bold text-gray-900 dark:text-white mb-2 truncate">{{ contact.title }}</h4>
+                                                
+                                                <!-- Make email clickable with mailto -->
+                                                <a v-if="contact.type === 'email'"
+                                                   :href="`mailto:${contact.value}`"
+                                                   class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors break-words word-break-break-word hover:underline"
+                                                   target="_blank"
+                                                   rel="noopener noreferrer">
+                                                    {{ contact.value }}
+                                                </a>
+                                                
+                                                <!-- Regular text for other contact types -->
+                                                <p v-else class="text-gray-600 dark:text-gray-400 break-words word-break-break-word">
+                                                    {{ contact.value }}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -605,55 +622,71 @@
                                     <form @submit.prevent="submitContactForm" class="space-y-6">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Name</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Name *</label>
                                                 <input v-model="contactForm.name"
                                                        type="text"
                                                        required
-                                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
-                                                       placeholder="John Doe">
+                                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white transition-colors"
+                                                       placeholder="John Doe"
+                                                       :class="{'border-red-500': contactForm.errors.name}">
+                                                <p v-if="contactForm.errors.name" class="text-red-500 text-xs mt-1">{{ contactForm.errors.name }}</p>
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Email</label>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Email *</label>
                                                 <input v-model="contactForm.email"
                                                        type="email"
                                                        required
-                                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
-                                                       placeholder="john@example.com">
+                                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white transition-colors"
+                                                       placeholder="john@example.com"
+                                                       :class="{'border-red-500': contactForm.errors.email}">
+                                                <p v-if="contactForm.errors.email" class="text-red-500 text-xs mt-1">{{ contactForm.errors.email }}</p>
                                             </div>
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject *</label>
                                             <input v-model="contactForm.subject"
                                                    type="text"
                                                    required
-                                                   class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
-                                                   placeholder="Project Inquiry">
+                                                   class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white transition-colors"
+                                                   placeholder="Project Inquiry"
+                                                   :class="{'border-red-500': contactForm.errors.subject}">
+                                            <p v-if="contactForm.errors.subject" class="text-red-500 text-xs mt-1">{{ contactForm.errors.subject }}</p>
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message</label>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message *</label>
                                             <textarea v-model="contactForm.message"
                                                       rows="5"
                                                       required
-                                                      class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white"
-                                                      placeholder="Tell me about your project..."></textarea>
+                                                      class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-900 dark:text-white transition-colors resize-none"
+                                                      placeholder="Tell me about your project..."
+                                                      :class="{'border-red-500': contactForm.errors.message}"></textarea>
+                                            <p v-if="contactForm.errors.message" class="text-red-500 text-xs mt-1">{{ contactForm.errors.message }}</p>
                                         </div>
                                         <button type="submit"
                                                 :disabled="contactForm.loading"
                                                 :class="[
-                                                    'w-full px-6 py-3 rounded-lg font-medium transition-colors',
+                                                    'w-full px-6 py-3 rounded-lg font-medium transition-all duration-300',
                                                     contactForm.loading
                                                         ? 'bg-indigo-400 dark:bg-indigo-500 cursor-not-allowed'
-                                                        : 'bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600'
+                                                        : 'bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 hover:shadow-lg'
                                                 ]">
                                             <span v-if="contactForm.loading" class="flex items-center justify-center">
                                                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                 </svg>
-                                                Sending...
+                                                Preparing Email...
                                             </span>
-                                            <span v-else>Send Message</span>
+                                            <span v-else class="flex items-center justify-center">
+                                                <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                                </svg>
+                                                Send Message
+                                            </span>
                                         </button>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
+                                            Clicking "Send Message" will open your email client with a pre-filled message to abhishekchowdhury054@gmail.com
+                                        </p>
                                     </form>
                                 </div>
                             </div>
@@ -662,37 +695,37 @@
                 </section>
 
                 <!-- Footer -->
-                <footer class="bg-gray-900 dark:bg-black pt-12 pb-8">
+                <footer class="bg-gray-900 dark:bg-black pt-8 pb-6">
                     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="text-center mb-8">
-                            <a href="#" class="text-2xl font-bold text-white mb-4 inline-block">
+                        <div class="text-center mb-6">
+                            <a href="#" class="text-xl font-bold text-white mb-3 inline-block">
                                 <span class="text-indigo-400">{{ siteSettings?.site_name || 'Portfolio' }}</span>
                             </a>
-                            <p class="text-gray-400 max-w-2xl mx-auto mb-8">
+                            <p class="text-gray-400 max-w-2xl mx-auto mb-6 text-sm">
                                 {{ siteSettings?.site_description || 'Et aut eum quis fuga eos sunt ipsa nihil. Labore corporis magni eligendi fuga maxime saepe commodi placeat.' }}
                             </p>
                             
                             <!-- Social Links -->
-                            <div v-if="siteSettings?.footer_social_links?.length > 0" class="flex justify-center space-x-6 mb-8">
+                            <div v-if="siteSettings?.footer_social_links?.length > 0" class="flex justify-center space-x-4 mb-6">
                                 <a v-for="social in siteSettings.footer_social_links" 
                                    :key="social.platform"
                                    :href="social.url"
                                    target="_blank"
                                    class="h-10 w-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-indigo-600 transition-colors"
                                    :title="social.platform">
-                                    <i v-if="social.icon" :class="social.icon" class="text-lg text-gray-300"></i>
+                                    <i v-if="social.icon" :class="social.icon" class="text-sm text-gray-300"></i>
                                     <span v-else class="text-sm font-medium text-gray-300">{{ social.platform?.charAt(0) }}</span>
                                 </a>
                             </div>
                         </div>
                         
                         <!-- Copyright -->
-                        <div class="border-t border-gray-800 pt-8">
+                        <div class="border-t border-gray-800 pt-6">
                             <div class="flex flex-col md:flex-row justify-between items-center">
-                                <p class="text-gray-400 text-sm mb-4 md:mb-0">
+                                <p class="text-gray-400 text-xs mb-3 md:mb-0">
                                     © {{ new Date().getFullYear() }} {{ siteSettings?.copyright_name || 'Your Name' }}. {{ siteSettings?.copyright_text || 'All Rights Reserved' }}
                                 </p>
-                                <div class="text-gray-400 text-sm">
+                                <div class="text-gray-400 text-xs">
                                     <span>{{ siteSettings?.distributed_by_text || 'Designed by' }} </span>
                                     <a :href="siteSettings?.designer_url || '#'" 
                                        class="text-indigo-400 hover:text-indigo-300 transition-colors">
@@ -725,7 +758,10 @@
                         <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                        <span class="font-medium">Message sent successfully!</span>
+                        <div>
+                            <span class="font-medium">Email ready to send!</span>
+                            <p class="text-sm opacity-90 mt-1">Your email client has opened with a pre-filled message.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -734,7 +770,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import axios from 'axios';
 
 // Theme Management
@@ -762,6 +798,47 @@ const typingSpeed = ref(100);
 const deletingSpeed = ref(50);
 const waitTime = ref(1500);
 let typewriterTimer = null;
+const statsSection = ref(null);
+const animatedStats = reactive({});
+const hasAnimatedStats = ref(false);
+
+const animateStats = () => {
+    if (hasAnimatedStats.value || !statsSection.value) return;
+    
+    const sectionTop = statsSection.value.getBoundingClientRect().top;
+    const windowHeight = window.innerHeight;
+    
+    // Start animation when section is in view
+    if (sectionTop < windowHeight - 100) {
+        hasAnimatedStats.value = true;
+        
+        statistics.value.forEach(stat => {
+            const startValue = 0;
+            const endValue = Number(stat.value);
+            const duration = 500; // 2 seconds
+            const startTime = Date.now();
+            
+            const updateCounter = () => {
+                const currentTime = Date.now();
+                const elapsed = currentTime - startTime;
+                
+                if (elapsed < duration) {
+                    const progress = elapsed / duration;
+                    // Use easing function for smooth animation
+                    const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                    const currentValue = Math.floor(easeOutQuart * endValue);
+                    
+                    animatedStats[stat.id] = currentValue;
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    animatedStats[stat.id] = endValue;
+                }
+            };
+            
+            updateCounter();
+        });
+    }
+};
 
 // Typewriter Function
 const typeWriter = () => {
@@ -888,14 +965,15 @@ const portfolioCategories = [
     { label: 'Other', value: 'other' }
 ];
 
-// Contact Form
+// Contact Form - Updated with error handling
 const contactForm = reactive({
     name: '',
     email: '',
     subject: '',
     message: '',
     loading: false,
-    success: false
+    success: false,
+    errors: {}
 });
 
 // Computed Properties
@@ -1069,12 +1147,214 @@ const handleScroll = () => {
             break;
         }
     }
+    
+    // Check if stats section should animate
+    if (!hasAnimatedStats.value && statistics.value.length > 0) {
+        animateStats();
+    }
+};
+
+// EMAIL FUNCTIONALITY - MAILTO APPROACH
+
+/**
+ * Send inquiry about a specific service using mailto
+ * @param {string} serviceName - Name of the service user is interested in
+ */
+const sendServiceInquiry = (serviceName) => {
+    const recipientEmail = 'abhishekchowdhury054@gmail.com';
+    const subject = `Inquiry about ${serviceName} Services - Portfolio Website`;
+    
+    // Create a professional email body template
+    const body = `Dear Abhishek,
+
+I visited your portfolio website and I'm very interested in your "${serviceName}" services.
+
+Could you please provide me with more information about:
+
+1. Your process and approach for ${serviceName}
+2. Pricing structure and packages available
+3. Estimated timelines for delivery
+4. Portfolio examples related to ${serviceName}
+5. Your current availability
+
+Looking forward to learning more about how we can work together!
+
+Best regards,
+[Your Name]
+
+---
+This inquiry was sent from your portfolio website.`;
+    
+    try {
+        // Encode the mailto link
+        const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        // Open mail client in new tab
+        const mailWindow = window.open(mailtoLink, '_blank');
+        
+        // If popup blocked, fallback to current window
+        if (!mailWindow || mailWindow.closed || typeof mailWindow.closed == 'undefined') {
+            window.location.href = mailtoLink;
+        }
+        
+        // Optional: Track the interaction
+        console.log(`Service inquiry sent for: ${serviceName}`);
+        
+    } catch (error) {
+        console.error('Error opening email client:', error);
+        // Fallback: Show email information
+        alert(`Please send an email to ${recipientEmail} with subject: "${subject}"`);
+    }
+};
+
+/**
+ * Validate contact form
+ */
+const validateContactForm = () => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    // Clear previous errors
+    contactForm.errors = {};
+    
+    // Name validation
+    if (!contactForm.name.trim()) {
+        errors.name = 'Name is required';
+    } else if (contactForm.name.trim().length < 2) {
+        errors.name = 'Name must be at least 2 characters';
+    }
+    
+    // Email validation
+    if (!contactForm.email.trim()) {
+        errors.email = 'Email is required';
+    } else if (!emailRegex.test(contactForm.email)) {
+        errors.email = 'Please enter a valid email address';
+    }
+    
+    // Subject validation
+    if (!contactForm.subject.trim()) {
+        errors.subject = 'Subject is required';
+    } else if (contactForm.subject.trim().length < 3) {
+        errors.subject = 'Subject must be at least 3 characters';
+    }
+    
+    // Message validation
+    if (!contactForm.message.trim()) {
+        errors.message = 'Message is required';
+    } else if (contactForm.message.trim().length < 10) {
+        errors.message = 'Message must be at least 10 characters';
+    }
+    
+    // Set errors if any
+    if (Object.keys(errors).length > 0) {
+        contactForm.errors = errors;
+        return false;
+    }
+    
+    return true;
+};
+
+/**
+ * Submit contact form using mailto
+ */
+const submitContactForm = async () => {
+    // Validate form
+    if (!validateContactForm()) {
+        return;
+    }
+    
+    contactForm.loading = true;
+    contactForm.success = false;
+    
+    try {
+        // Prepare email content
+        const recipientEmail = 'abhishekchowdhury054@gmail.com';
+        const subject = `Portfolio Contact: ${contactForm.subject}`;
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const body = `Dear Abhishek,
+
+You have received a new message from your portfolio website contact form:
+
+─────────────────────
+CONTACT INFORMATION
+─────────────────────
+👤 Name: ${contactForm.name}
+📧 Email: ${contactForm.email}
+📋 Subject: ${contactForm.subject}
+📅 Date: ${currentDate}
+
+─────────────────────
+MESSAGE
+─────────────────────
+${contactForm.message}
+─────────────────────
+
+This message was sent from your portfolio contact form.
+The sender can be reached at: ${contactForm.email}
+
+---
+To reply to this message, simply reply to this email.
+Note: This is an automated message from your portfolio website.`;
+        
+        // Create mailto link
+        const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        // Open mail client in new tab
+        const mailWindow = window.open(mailtoLink, '_blank');
+        
+        // If popup blocked, fallback to current window
+        if (!mailWindow || mailWindow.closed || typeof mailWindow.closed == 'undefined') {
+            window.location.href = mailtoLink;
+        }
+        
+        // Show success message
+        contactForm.success = true;
+        
+        // Reset form after a short delay
+        setTimeout(() => {
+            contactForm.name = '';
+            contactForm.email = '';
+            contactForm.subject = '';
+            contactForm.message = '';
+            contactForm.errors = {};
+            contactForm.success = false;
+        }, 5000);
+        
+        // Optional: Track the submission
+        console.log('Contact form submitted successfully');
+        
+    } catch (error) {
+        console.error('Error sending email:', error);
+        
+        // Show fallback option
+        const fallbackMessage = `There was an error opening your email client. 
+        
+Please send your message manually to:
+Email: abhishekchowdhury054@gmail.com
+Subject: ${contactForm.subject}
+
+Your message:
+${contactForm.message}`;
+        
+        alert(fallbackMessage);
+    } finally {
+        contactForm.loading = false;
+    }
 };
 
 // Fetch Data Functions
 const fetchData = async () => {
     try {
         loading.value = true;
+        hasAnimatedStats.value = false; // Reset animation flag
         
         // Initialize demo data first to prevent undefined errors
         setDemoData();
@@ -1117,15 +1397,34 @@ const fetchData = async () => {
             if (contactResponse.data?.data) contactInfo.value = contactResponse.data.data;
             if (settingsResponse.data?.data) siteSettings.value = settingsResponse.data.data;
 
+            // Initialize animatedStats with new data
+            statistics.value.forEach(stat => {
+                if (!animatedStats[stat.id]) {
+                    animatedStats[stat.id] = 0;
+                }
+            });
+
         } catch (apiError) {
             console.error('API Error:', apiError);
             // Keep demo data if API fails
+            statistics.value.forEach(stat => {
+                if (!animatedStats[stat.id]) {
+                    animatedStats[stat.id] = 0;
+                }
+            });
         }
 
     } catch (error) {
         console.error('Error in fetchData:', error);
     } finally {
         loading.value = false;
+        
+        // Trigger animation check after data loads
+        nextTick(() => {
+            setTimeout(() => {
+                animateStats();
+            }, 500);
+        });
     }
 };
 
@@ -1225,6 +1524,34 @@ const setDemoData = () => {
             icon: 'fas fa-paint-brush',
             color: 'purple',
             description: 'User-centered design for optimal user experience'
+        },
+        {
+            id: 3,
+            title: 'Mobile App Development',
+            icon: 'fas fa-mobile-alt',
+            color: 'green',
+            description: 'Native and cross-platform mobile applications'
+        },
+        {
+            id: 4,
+            title: 'E-commerce Solutions',
+            icon: 'fas fa-shopping-cart',
+            color: 'orange',
+            description: 'Online stores and payment integrations'
+        },
+        {
+            id: 5,
+            title: 'SEO Optimization',
+            icon: 'fas fa-search',
+            color: 'teal',
+            description: 'Search engine optimization and digital marketing'
+        },
+        {
+            id: 6,
+            title: 'Branding & Graphics',
+            icon: 'fas fa-palette',
+            color: 'pink',
+            description: 'Logo design and brand identity development'
         }
     ];
 
@@ -1235,16 +1562,44 @@ const setDemoData = () => {
             position: 'CEO at TechCorp',
             rating: 5,
             content: 'Excellent work! The project was delivered on time and exceeded expectations.'
+        },
+        {
+            id: 2,
+            name: 'Michael Chen',
+            position: 'Product Manager at StartupX',
+            rating: 5,
+            content: 'Professional and highly skilled developer. Highly recommended!'
+        },
+        {
+            id: 3,
+            name: 'Emily Rodriguez',
+            position: 'Marketing Director',
+            rating: 5,
+            content: 'Great attention to detail and fantastic communication throughout the project.'
         }
     ];
 
     contactInfo.value = [
         {
             id: 1,
+            type: 'address',
+            icon: 'fas fa-map-marker-alt',
+            title: 'Location',
+            value: 'San Francisco, California'
+        },
+        {
+            id: 2,
             type: 'email',
             icon: 'fas fa-envelope',
             title: 'Email',
-            value: 'hello@example.com'
+            value: 'abhishekchowdhury054@gmail.com'
+        },
+        {
+            id: 3,
+            type: 'phone',
+            icon: 'fas fa-phone',
+            title: 'Phone',
+            value: '+1 (234) 567-8900'
         }
     ];
 
@@ -1254,35 +1609,6 @@ const setDemoData = () => {
         copyright_name: 'John Doe',
         copyright_text: 'All rights reserved'
     };
-};
-
-// Contact Form Submission
-const submitContactForm = async () => {
-    contactForm.loading = true;
-    contactForm.success = false;
-
-    try {
-        // In a real application, you would send this to your backend
-        // For now, we'll simulate a successful submission
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        contactForm.success = true;
-        contactForm.name = '';
-        contactForm.email = '';
-        contactForm.subject = '';
-        contactForm.message = '';
-
-        // Hide success message after 5 seconds
-        setTimeout(() => {
-            contactForm.success = false;
-        }, 5000);
-
-    } catch (error) {
-        console.error('Error submitting form:', error);
-        alert('Failed to send message. Please try again.');
-    } finally {
-        contactForm.loading = false;
-    }
 };
 
 // Lifecycle Hooks
@@ -1304,7 +1630,12 @@ onMounted(() => {
     window.addEventListener('resize', handleResize);
 
     // Fetch data
-    fetchData();
+    fetchData().then(() => {
+        // Initialize animatedStats with 0 after data is fetched
+        statistics.value.forEach(stat => {
+            animatedStats[stat.id] = 0;
+        });
+    });
 
     // Add scroll listener
     window.addEventListener('scroll', handleScroll);
@@ -1316,6 +1647,11 @@ onMounted(() => {
     setTimeout(() => {
         startTypewriter();
     }, 1000);
+    
+    // Initial stats animation check
+    setTimeout(() => {
+        animateStats();
+    }, 1500);
 });
 
 onUnmounted(() => {
@@ -1332,6 +1668,23 @@ watch(() => heroData.value?.roles, (newRoles) => {
         startTypewriter();
     }
 }, { immediate: true });
+
+watch(() => statistics.value, (newStats) => {
+    if (newStats && newStats.length > 0) {
+        // Reset animation when stats data changes
+        hasAnimatedStats.value = false;
+        newStats.forEach(stat => {
+            animatedStats[stat.id] = 0;
+        });
+        
+        // Trigger animation check after stats update
+        nextTick(() => {
+            setTimeout(() => {
+                animateStats();
+            }, 500);
+        });
+    }
+}, { deep: true });
 </script>
 
 <style scoped>
@@ -1473,6 +1826,90 @@ nav span {
     outline-color: #6366f1;
 }
 
+/* Custom animations for lighting effects */
+@keyframes gradient-xy {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes gradient-x {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.animate-gradient-xy {
+    background-size: 400% 400%;
+    animation: gradient-xy 3s ease infinite;
+}
+
+.animate-spin-slow {
+    animation: spin-slow 20s linear infinite;
+}
+
+.animate-gradient-x {
+    background-size: 200% auto;
+    animation: gradient-x 2s ease infinite;
+}
+
+/* Smooth animations */
+.animate-bounce {
+    animation: bounce 2s infinite;
+}
+
+.animate-pulse {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-ping {
+    animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes ping {
+    0% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    75%, 100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 640px) {
     .text-4xl {
@@ -1492,5 +1929,401 @@ nav span {
 img {
     max-width: 100%;
     height: auto;
+}
+
+/* Profile picture lighting effect enhancements */
+.backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+}
+
+.blur-xl {
+    filter: blur(24px);
+}
+
+.blur-md {
+    filter: blur(12px);
+}
+
+.blur-sm {
+    filter: blur(4px);
+}
+
+.delay-300 {
+    animation-delay: 300ms;
+}
+
+.delay-500 {
+    animation-delay: 500ms;
+}
+
+.shadow-inner {
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Hero section specific adjustments */
+.relative.z-10 {
+    position: relative;
+    z-index: 10;
+}
+
+/* Better text overflow handling */
+.word-break-break-word {
+    word-break: break-word;
+}
+
+/* Ensure proper text wrapping */
+.break-words {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+/* Prevent text overflow in contact info */
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Smooth section transitions */
+section {
+    scroll-margin-top: 80px; /* For better scroll positioning */
+}
+
+/* Improve form input text handling */
+input, textarea {
+    max-width: 100%;
+}
+
+/* Fix for About section alignment */
+.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+/* Ensure contact info items don't shrink */
+.flex-shrink-0 {
+    flex-shrink: 0;
+}
+
+/* Allow flex items to shrink properly */
+.min-w-0 {
+    min-width: 0;
+}
+
+/* Ensure proper overflow handling */
+.overflow-hidden {
+    overflow: hidden;
+}
+
+/* Alignment fixes for Hero and About sections */
+.text-left {
+    text-align: left !important;
+}
+
+.flex.justify-start {
+    justify-content: flex-start !important;
+}
+
+.flex.justify-end {
+    justify-content: flex-end !important;
+}
+
+.flex.justify-center {
+    justify-content: center !important;
+}
+
+/* Grid alignment adjustments */
+.grid.grid-cols-1.lg\:grid-cols-2.gap-12.items-start {
+    align-items: start;
+}
+
+.grid.grid-cols-1.lg\:grid-cols-2.gap-12.items-center {
+    align-items: center;
+}
+
+.flex.flex-col.justify-center {
+    justify-content: center;
+}
+
+/* Responsive alignment for mobile */
+@media (max-width: 1024px) {
+    .text-left,
+    .flex.flex-col.justify-center {
+        text-align: center;
+    }
+    
+    .flex.justify-center.lg\:justify-end,
+    .flex.justify-center.lg\:justify-end {
+        justify-content: center !important;
+    }
+    
+    .relative.w-64.h-64.md\:w-96.md\:h-96,
+    .relative.w-64.h-64.md\:w-80.md\:h-80 {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* Ensure consistent spacing */
+.gap-12 {
+    gap: 3rem;
+}
+
+/* Better vertical centering */
+.items-center {
+    align-items: center;
+}
+
+.items-start {
+    align-items: flex-start;
+}
+
+/* Fix for flex containers */
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.text-2xl.font-bold.text-black.dark\:text-white.mb-2 {
+    animation: countUp 0.5s ease-out forwards;
+}
+
+/* Smooth transitions for number changes */
+.text-2xl.font-bold {
+    transition: all 0.3s ease;
+}
+
+/* Optional: Add a subtle scale effect on completion */
+@keyframes pulseComplete {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.text-2xl.font-bold.text-black.dark\:text-white.mb-2.complete {
+    animation: pulseComplete 0.3s ease;
+}
+
+/* Enhanced styles for service inquiry links */
+.group\/link {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.group\/link:hover {
+    transform: translateX(4px);
+}
+
+.group\/link:focus {
+    outline: 2px solid #4f46e5;
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+}
+
+.dark .group\/link:focus {
+    outline-color: #6366f1;
+}
+
+/* Contact form validation styles */
+input:invalid, textarea:invalid {
+    border-color: #f87171 !important;
+}
+
+input:valid, textarea:valid {
+    border-color: #4ade80 !important;
+}
+
+/* Success message animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fixed.top-4.right-4.z-50 {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Loading state styles */
+button[disabled] {
+    cursor: not-allowed !important;
+    opacity: 0.7 !important;
+}
+
+/* Service card hover effects */
+.group:hover .transform {
+    transform: scale(1.05);
+}
+
+/* Responsive adjustments for mailto buttons */
+@media (max-width: 640px) {
+    .group\/link {
+        padding: 0.5rem 0;
+    }
+    
+    .fixed.top-4.right-4.z-50 {
+        left: 50%;
+        transform: translateX(-50%);
+        right: auto;
+        width: 90%;
+        max-width: 400px;
+    }
+}
+
+/* Accessibility improvements */
+[role="button"] {
+    cursor: pointer;
+}
+
+[role="button"]:focus-visible {
+    outline: 2px solid #4f46e5;
+    outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+button, 
+[role="button"],
+a {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Prevent text selection on buttons */
+button, 
+[role="button"] {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Better focus states for dark mode */
+.dark input:focus,
+.dark textarea:focus {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Contact info cards hover effect */
+.bg-white.dark\:bg-gray-800.rounded-xl.p-6.shadow-lg {
+    transition: transform 0.2s ease;
+}
+
+.bg-white.dark\:bg-gray-800.rounded-xl.p-6.shadow-lg:hover {
+    transform: translateY(-2px);
+}
+
+/* Email link styles in contact info */
+a[href^="mailto:"] {
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a[href^="mailto:"]:hover {
+    text-decoration: underline;
+}
+
+/* Form error message styles */
+.text-red-500.text-xs {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Resize prevention for textarea */
+.resize-none {
+    resize: none;
+}
+
+/* Contact form button icon */
+button svg {
+    transition: transform 0.2s ease;
+}
+
+button:hover svg {
+    transform: translateX(2px);
+}
+
+/* Stats animation enhancement */
+@keyframes statPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.relative.w-16.h-16.bg-blue-500.rounded-full {
+    animation: statPulse 2s infinite;
+}
+
+/* Service section link accessibility */
+.group\/link span {
+    position: relative;
+}
+
+.group\/link span::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease;
+}
+
+.group\/link:hover span::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+
+/* Toast notification styles */
+.bg-green-500.text-white.rounded-lg.shadow-lg {
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.3);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .grid.grid-cols-1.lg\:grid-cols-3.gap-8 {
+        gap: 1.5rem;
+    }
+    
+    .p-8 {
+        padding: 1.5rem;
+    }
+    
+    .text-3xl {
+        font-size: 1.75rem;
+    }
+}
+
+/* Print styles for email content */
+@media print {
+    .fixed {
+        display: none !important;
+    }
+    
+    nav {
+        display: none !important;
+    }
 }
 </style>

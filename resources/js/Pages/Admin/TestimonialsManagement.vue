@@ -15,7 +15,7 @@
             </div>
 
             <!-- Add/Edit Testimonial Form -->
-            <div v-if="showForm" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 mb-8 border border-gray-200 dark:border-gray-700">
+            <div v-if="showForm" ref="formContainer" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 mb-8 border border-gray-200 dark:border-gray-700">
                 <form @submit.prevent="saveTestimonial" class="space-y-6">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div>
@@ -424,7 +424,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick } from 'vue';
 import axios from 'axios';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { 
@@ -448,6 +448,7 @@ const error = ref(null);
 const showToast = ref(false);
 const toastMessage = ref('');
 const toastType = ref('success');
+const formContainer = ref(null);
 
 // Form data
 const form = reactive({
@@ -560,7 +561,7 @@ const handleImageUpload = (event) => {
     }
 };
 
-const editTestimonial = (testimonial) => {
+const editTestimonial = async (testimonial) => {
     if (!testimonial) return;
     
     editingId.value = testimonial.id;
@@ -575,13 +576,16 @@ const editTestimonial = (testimonial) => {
     });
     showForm.value = true;
     
-    // Scroll to form
-    setTimeout(() => {
-        document.querySelector('.bg-white\\ dark\\:bg-gray-800').scrollIntoView({ 
+    // Wait for Vue to render the form
+    await nextTick();
+    
+    // Scroll to form using the template ref
+    if (formContainer.value) {
+        formContainer.value.scrollIntoView({ 
             behavior: 'smooth', 
             block: 'start' 
         });
-    }, 100);
+    }
 };
 
 const cancelEdit = () => {
@@ -637,8 +641,8 @@ const saveTestimonial = async () => {
         formData.append('name', form.name.trim());
         formData.append('position', form.position.trim());
         formData.append('content', form.content.trim());
-        formData.append('rating', form.rating);
-        formData.append('order', form.order);
+        formData.append('rating', form.rating.toString());
+        formData.append('order', form.order.toString());
         formData.append('is_active', form.is_active ? '1' : '0');
         
         // Handle image upload
@@ -652,20 +656,27 @@ const saveTestimonial = async () => {
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         const headers = { 
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data',
+            'X-Requested-With': 'XMLHttpRequest'
         };
         
         if (csrfToken) {
             headers['X-CSRF-TOKEN'] = csrfToken;
         }
 
+        let response;
+        
         if (editingId.value) {
-            await axios.post(`${API_BASE_URL}/testimonials/${editingId.value}`, formData, { headers });
+            // Use POST with _method=PUT for file uploads
+            formData.append('_method', 'PUT');
+            response = await axios.post(`${API_BASE_URL}/testimonials/${editingId.value}`, formData, { headers });
             displayToast('Testimonial updated successfully!', 'success');
         } else {
-            await axios.post(`${API_BASE_URL}/testimonials`, formData, { headers });
+            response = await axios.post(`${API_BASE_URL}/testimonials`, formData, { headers });
             displayToast('Testimonial added successfully!', 'success');
         }
+        
+        console.log('API Response:', response.data);
         
         // Refresh the list
         await fetchTestimonials();
@@ -673,11 +684,15 @@ const saveTestimonial = async () => {
         
     } catch (err) {
         console.error('Error saving testimonial:', err);
+        console.error('Error details:', err.response?.data);
         
         if (err.response?.status === 422) {
             const errors = err.response.data.errors;
-            const firstError = Object.values(errors)[0]?.[0];
-            displayToast(firstError || 'Validation error', 'error');
+            console.log('Validation errors:', errors);
+            
+            // Get all error messages
+            const errorMessages = Object.values(errors).flat();
+            displayToast(errorMessages[0] || 'Validation error', 'error');
         } else if (err.response?.status === 401) {
             displayToast('Session expired. Please login again.', 'error');
             setTimeout(() => {

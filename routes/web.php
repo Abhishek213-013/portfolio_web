@@ -111,7 +111,8 @@ Route::prefix('api')->group(function () {
     // Testimonials API
     Route::get('/testimonials', [TestimonialController::class, 'index']);
     Route::post('/testimonials', [TestimonialController::class, 'store']);
-    Route::put('/testimonials/{id}', [TestimonialController::class, 'update']);
+    Route::post('/testimonials/{id}', [TestimonialController::class, 'update']); // Add this
+    Route::put('/testimonials/{id}', [TestimonialController::class, 'update']); // Keep this for API clients that use PUT
     Route::delete('/testimonials/{id}', [TestimonialController::class, 'destroy']);
     
     // About Section API
