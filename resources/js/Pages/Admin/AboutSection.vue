@@ -1,45 +1,46 @@
 <template>
     <AdminLayout>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">About Section Management</h2>
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
+            <!-- Header Section -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">About Section Management</h2>
                 <button 
                     @click="showForm = !showForm" 
-                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors"
+                    class="w-full sm:w-auto px-4 py-2 text-sm sm:text-base bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors"
                 >
                     {{ showForm ? 'Cancel' : aboutData ? 'Edit About' : 'Create About' }}
                 </button>
             </div>
 
             <!-- About Form -->
-            <div v-if="showForm" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 mb-8 border border-gray-200 dark:border-gray-700">
-                <form @submit.prevent="saveAbout" class="space-y-6">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="space-y-4">
+            <div v-if="showForm" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 sm:p-4 md:p-6 mb-6 sm:mb-8 border border-gray-200 dark:border-gray-700">
+                <form @submit.prevent="saveAbout" class="space-y-4 sm:space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="space-y-3 sm:space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Profile Image</label>
-                                <div class="mt-1 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Profile Image</label>
+                                <div class="flex flex-col items-start space-y-3 sm:space-y-0">
                                     <input 
                                         type="file" 
                                         @change="handleImageUpload"
                                         accept="image/*"
-                                        class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-gray-700 dark:file:text-gray-300"
+                                        class="w-full text-xs sm:text-sm text-gray-500 dark:text-gray-400 file:mr-2 file:py-2 file:px-3 sm:file:px-4 file:rounded-lg file:border-0 file:text-xs sm:file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-gray-700 dark:file:text-gray-300"
                                     />
                                 </div>
-                                <div v-if="form.profile_image" class="mt-4">
+                                <div v-if="form.profile_image" class="mt-3 sm:mt-4">
                                     <img :src="profileImageUrl" 
-                                         class="h-32 w-32 object-cover rounded-full border-4 border-white dark:border-gray-800 shadow-md">
+                                         class="h-24 w-24 sm:h-32 sm:w-32 object-cover rounded-full border-4 border-white dark:border-gray-800 shadow-md">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="space-y-4">
+                        <div class="space-y-3 sm:space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Title</label>
                                 <input 
                                     v-model="form.title" 
                                     type="text" 
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                    class="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                     required
                                     placeholder="Enter title"
                                 />
@@ -48,73 +49,73 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Description</label>
                         <textarea 
                             v-model="form.description" 
                             rows="2"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                            class="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                             required
                             placeholder="Enter description"
                         ></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bio</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Bio</label>
                         <textarea 
                             v-model="form.bio" 
                             rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                            class="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                             required
                             placeholder="Enter bio"
                         ></textarea>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Left Column Details</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-4 rounded-lg">
+                            <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">Left Column Details</h3>
                             <div v-for="(detail, index) in leftDetails" :key="index" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                                 <input 
                                     v-model="detail.label" 
                                     type="text" 
                                     placeholder="Label"
-                                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                                    class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 />
                                 <input 
                                     v-model="detail.value" 
                                     type="text" 
                                     placeholder="Value"
-                                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                                    class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 />
                             </div>
                             <button 
                                 type="button" 
                                 @click="addDetail('left')"
-                                class="mt-2 px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 transition-colors text-sm"
+                                class="mt-2 px-3 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 transition-colors"
                             >
                                 + Add Detail
                             </button>
                         </div>
 
-                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Right Column Details</h3>
+                        <div class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-4 rounded-lg">
+                            <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">Right Column Details</h3>
                             <div v-for="(detail, index) in rightDetails" :key="index" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                                 <input 
                                     v-model="detail.label" 
                                     type="text" 
                                     placeholder="Label"
-                                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                                    class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 />
                                 <input 
                                     v-model="detail.value" 
                                     type="text" 
                                     placeholder="Value"
-                                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                                    class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 />
                             </div>
                             <button 
                                 type="button" 
                                 @click="addDetail('right')"
-                                class="mt-2 px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 transition-colors text-sm"
+                                class="mt-2 px-3 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 transition-colors"
                             >
                                 + Add Detail
                             </button>
@@ -122,17 +123,17 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Extended Bio</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Extended Bio</label>
                         <textarea 
                             v-model="form.extended_bio" 
                             rows="4"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                            class="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                             required
                             placeholder="Enter extended bio"
                         ></textarea>
                     </div>
 
-                    <div class="flex items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div class="flex items-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                         <input 
                             v-model="form.is_active" 
                             type="checkbox" 
@@ -146,7 +147,7 @@
                         <button 
                             type="button" 
                             @click="showForm = false"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 rounded-md transition-colors"
+                            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 rounded-md transition-colors"
                         >
                             Cancel
                         </button>
@@ -154,7 +155,7 @@
                             type="submit" 
                             :disabled="loading"
                             :class="[
-                                'px-4 py-2 text-sm font-medium text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+                                'w-full sm:w-auto px-4 py-2 text-sm font-medium text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
                                 loading 
                                     ? 'bg-indigo-400 dark:bg-indigo-500 cursor-not-allowed' 
                                     : 'bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600'
@@ -175,63 +176,63 @@
 
             <!-- About Preview -->
             <div v-if="aboutData" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                <div class="p-4 sm:p-6">
-                    <div class="flex flex-col lg:flex-row items-center lg:items-start space-y-6 lg:space-y-0 lg:space-x-6">
+                <div class="p-3 sm:p-4 md:p-6">
+                    <div class="flex flex-col lg:flex-row items-center lg:items-start space-y-4 sm:space-y-6 lg:space-y-0 lg:space-x-6">
                         <div class="shrink-0">
                             <div class="relative">
                                 <img 
                                     v-if="aboutData.profile_image" 
                                     :src="aboutData.profile_image" 
-                                    class="h-48 w-48 object-cover rounded-lg shadow-lg border-4 border-white dark:border-gray-800"
+                                    class="h-40 w-40 sm:h-48 sm:w-48 object-cover rounded-lg shadow-lg border-4 border-white dark:border-gray-800"
                                 />
-                                <div v-else class="h-48 w-48 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                    <UserIcon class="h-16 w-16 text-gray-400 dark:text-gray-500" />
+                                <div v-else class="h-40 w-40 sm:h-48 sm:w-48 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                    <UserIcon class="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 dark:text-gray-500" />
                                 </div>
                                 <div v-if="aboutData.is_active" class="absolute top-2 right-2">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                         Active
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex-1">
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">{{ aboutData.title }}</h3>
-                            <p class="text-gray-600 dark:text-gray-400 italic mb-4 border-l-4 border-indigo-500 dark:border-indigo-400 pl-4 py-1">{{ aboutData.bio }}</p>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">{{ aboutData.title }}</h3>
+                            <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 italic mb-3 sm:mb-4 border-l-4 border-indigo-500 dark:border-indigo-400 pl-3 sm:pl-4 py-1">{{ aboutData.bio }}</p>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-3 sm:mb-4">
                                 <div>
-                                    <h4 class="font-medium text-gray-900 dark:text-white mb-3 text-sm uppercase tracking-wider">Personal Details</h4>
-                                    <ul class="space-y-2">
+                                    <h4 class="font-medium text-gray-900 dark:text-white mb-2 sm:mb-3 text-xs sm:text-sm uppercase tracking-wider">Personal Details</h4>
+                                    <ul class="space-y-1 sm:space-y-2">
                                         <li v-for="(detail, index) in aboutData.personal_details?.left || []" :key="index" 
-                                            class="text-gray-700 dark:text-gray-300 flex items-start">
-                                            <span class="font-medium text-gray-900 dark:text-white min-w-25">{{ detail.label }}:</span>
-                                            <span class="ml-2 flex-1">{{ detail.value }}</span>
+                                            class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 flex flex-col sm:flex-row sm:items-start">
+                                            <span class="font-medium text-gray-900 dark:text-white sm:min-w-20">{{ detail.label }}:</span>
+                                            <span class="sm:ml-2 flex-1 break-words">{{ detail.value }}</span>
                                         </li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <h4 class="font-medium text-gray-900 dark:text-white mb-3 text-sm uppercase tracking-wider">Additional Details</h4>
-                                    <ul class="space-y-2">
+                                    <h4 class="font-medium text-gray-900 dark:text-white mb-2 sm:mb-3 text-xs sm:text-sm uppercase tracking-wider">Additional Details</h4>
+                                    <ul class="space-y-1 sm:space-y-2">
                                         <li v-for="(detail, index) in aboutData.personal_details?.right || []" :key="index" 
-                                            class="text-gray-700 dark:text-gray-300 flex items-start">
-                                            <span class="font-medium text-gray-900 dark:text-white min-w-25">{{ detail.label }}:</span>
-                                            <span class="ml-2 flex-1">{{ detail.value }}</span>
+                                            class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 flex flex-col sm:flex-row sm:items-start">
+                                            <span class="font-medium text-gray-900 dark:text-white sm:min-w-20">{{ detail.label }}:</span>
+                                            <span class="sm:ml-2 flex-1 break-words">{{ detail.value }}</span>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
                             
-                            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <h4 class="font-medium text-gray-900 dark:text-white mb-3">Extended Bio</h4>
-                                <p class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{{ aboutData.extended_bio }}</p>
+                            <div class="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2 sm:mb-3">Extended Bio</h4>
+                                <p class="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line break-words">{{ aboutData.extended_bio }}</p>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
-                        <div class="flex items-center space-x-2">
+                    <div class="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+                        <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                             <span :class="[
-                                'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
+                                'inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium',
                                 aboutData.is_active 
                                     ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
                                     : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
@@ -239,11 +240,11 @@
                                 <span class="w-2 h-2 rounded-full mr-2" :class="aboutData.is_active ? 'bg-green-500' : 'bg-red-500'"></span>
                                 {{ aboutData.is_active ? 'Active' : 'Inactive' }}
                             </span>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                            <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                                 {{ aboutData.is_active ? 'Visible on website' : 'Hidden from website' }}
                             </span>
                         </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                        <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2 sm:mt-0">
                             Last updated: {{ formatDate(aboutData.updated_at) }}
                         </div>
                     </div>
@@ -251,16 +252,16 @@
             </div>
 
             <!-- Empty State -->
-            <div v-else-if="!showForm" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center border border-gray-200 dark:border-gray-700">
+            <div v-else-if="!showForm" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 md:p-8 text-center border border-gray-200 dark:border-gray-700">
                 <div class="max-w-md mx-auto">
-                    <div class="h-16 w-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <UserIcon class="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                    <div class="h-12 w-12 sm:h-16 sm:w-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                        <UserIcon class="h-6 w-6 sm:h-8 sm:w-8 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <h3 class="text-xl font-medium text-gray-900 dark:text-white mb-2">No About Section Found</h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-6">Create your about section to display on the homepage. This section will showcase your personal and professional information.</p>
+                    <h3 class="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-1 sm:mb-2">No About Section Found</h3>
+                    <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">Create your about section to display on the homepage. This section will showcase your personal and professional information.</p>
                     <button 
                         @click="showForm = true" 
-                        class="px-6 py-3 bg-indigo-600 dark:bg-indigo-500 text-white font-medium rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+                        class="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 dark:bg-indigo-500 text-white text-sm sm:text-base font-medium rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
                     >
                         Create About Section
                     </button>
@@ -543,6 +544,93 @@ img {
     height: auto;
 }
 
+/* Mobile-first responsive improvements */
+.min-w-20 {
+    min-width: 5rem;
+}
+
+/* Break words for long text on mobile */
+.break-words {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Better touch targets for mobile */
+button, input[type="checkbox"], input[type="file"] {
+    min-height: 44px;
+}
+
+/* Improved mobile text readability */
+@media (max-width: 640px) {
+    .text-xs {
+        font-size: 0.75rem;
+        line-height: 1rem;
+    }
+    
+    .text-sm {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+    }
+    
+    /* Ensure form elements are easily tappable */
+    input, textarea, button {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+    }
+    
+    /* Better spacing for stacked elements */
+    .space-y-3 > * + * {
+        margin-top: 0.75rem;
+    }
+    
+    .space-y-4 > * + * {
+        margin-top: 1rem;
+    }
+}
+
+/* Hide scrollbar on mobile but keep functionality */
+@media (max-width: 640px) {
+    textarea {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Smooth transitions for all interactive elements */
+button, input, textarea, select {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Prevent text overflow on mobile */
+.truncate-mobile {
+    @media (max-width: 640px) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+/* Improve form field spacing on mobile */
+@media (max-width: 640px) {
+    .grid-cols-1 > * {
+        width: 100%;
+    }
+    
+    .gap-2 > * + * {
+        margin-top: 0.5rem;
+    }
+    
+    .gap-3 > * + * {
+        margin-top: 0.75rem;
+    }
+}
+
+/* Ensure buttons are full width on mobile but not on desktop */
+@media (max-width: 640px) {
+    button.w-full {
+        width: 100%;
+    }
+}
+
 /* Better spacing for mobile */
 @media (max-width: 640px) {
     .space-y-4 > * + * {
@@ -563,6 +651,54 @@ img {
     .bg-white, .dark\:bg-gray-800 {
         background: white !important;
         color: black !important;
+    }
+}
+
+/* Responsive padding utilities */
+.p-3 {
+    padding: 0.75rem;
+}
+
+@media (min-width: 640px) {
+    .sm\:p-4 {
+        padding: 1rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .md\:p-6 {
+        padding: 1.5rem;
+    }
+}
+
+/* Responsive margin utilities */
+.mb-3 {
+    margin-bottom: 0.75rem;
+}
+
+@media (min-width: 640px) {
+    .sm\:mb-4 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Responsive text sizes */
+.text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+
+@media (min-width: 640px) {
+    .sm\:text-xl {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .md\:text-2xl {
+        font-size: 1.5rem;
+        line-height: 2rem;
     }
 }
 </style>
